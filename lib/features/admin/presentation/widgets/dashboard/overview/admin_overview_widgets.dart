@@ -9,6 +9,7 @@ class AdminStatsGrid extends StatelessWidget {
     required this.totalProducts,
     required this.totalUsers,
     required this.totalOrders,
+    required this.activeOrders,
     required this.deliveredAmount,
     required this.totalOrderAmount,
   });
@@ -16,6 +17,7 @@ class AdminStatsGrid extends StatelessWidget {
   final int totalProducts;
   final int totalUsers;
   final int totalOrders;
+  final int activeOrders;
   final double deliveredAmount;
   final double totalOrderAmount;
 
@@ -28,6 +30,8 @@ class AdminStatsGrid extends StatelessWidget {
           Icons.people_outline_rounded, const Color(0xFF5856D6)),
       _StatData('Total Orders', '$totalOrders',
           Icons.receipt_long_outlined, const Color(0xFFFF9500)),
+      _StatData('Active Orders', '$activeOrders',
+          Icons.local_shipping_outlined, const Color(0xFF32ADE6)),
       _StatData('Delivered Revenue', adminFormatRs(deliveredAmount),
           Icons.check_circle_outline_rounded, const Color(0xFF34C759)),
       _StatData('Total Order Amount', adminFormatRs(totalOrderAmount),

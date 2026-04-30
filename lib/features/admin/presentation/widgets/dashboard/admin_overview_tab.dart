@@ -87,6 +87,10 @@ class AdminOverviewTab extends StatelessWidget {
                   totalProducts: products.length,
                   totalUsers: orders.map((o) => o.userId).toSet().length,
                   totalOrders: orders.length,
+                  activeOrders: orders.where((o) {
+                    final s = o.status.trim().toLowerCase();
+                    return s != 'delivered' && s != 'cancelled' && s != 'canceled';
+                  }).length,
                   deliveredAmount: deliveredAmount,
                   totalOrderAmount: totalOrderAmount,
                 ),
