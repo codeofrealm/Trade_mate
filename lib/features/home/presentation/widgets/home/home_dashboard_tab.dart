@@ -6,9 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../../../app/app_routes.dart';
 import '../../../../admin/data/models/admin_product.dart';
 import '../../../data/home_product_service.dart';
-import '../../../data/home_user_profile_service.dart';
-import '../../../data/models/home_user_address.dart';
-import '../../pages/order_success_page.dart';
+import '../../pages/order_confirm_page.dart';
 import '../../pages/product_details_page.dart';
 
 class HomeDashboardTab extends StatefulWidget {
@@ -610,13 +608,31 @@ class _ProductsSliver extends StatelessWidget {
 
 // ── Product card ──────────────────────────────────────────────────────────────
 
-class _ProductCard extends StatelessWidget {
-  const _ProductCard({required this.product});
+// ── Product card ──────────────────────────────────────────────────────────────
 
+class _ProductCard extends StatefulWidget {
+  const _ProductCard({required this.product});
   final AdminProduct product;
 
   @override
+  State<_ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<_ProductCard> {
+
+  Future<void> _quickOrder() async {
+    await Navigator.of(context).pushNamed(
+      AppRoutes.orderConfirm,
+      arguments: OrderConfirmPageArgs(
+        product: widget.product,
+        quantity: 1,
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final product = widget.product;
     return GestureDetector(
       onTap: () => Navigator.of(context).pushNamed(
         AppRoutes.productDetails,
@@ -637,7 +653,6 @@ class _ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // image area
             Expanded(
               child: Stack(
                 children: [
@@ -653,13 +668,11 @@ class _ProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // category pill
                   Positioned(
                     top: 8,
                     left: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.92),
                         borderRadius: BorderRadius.circular(20),
@@ -674,14 +687,12 @@ class _ProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // low stock badge
                   if (product.stock <= 5 && product.stock > 0)
                     Positioned(
                       top: 8,
                       right: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 3),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFF3B30),
                           borderRadius: BorderRadius.circular(20),
@@ -699,7 +710,6 @@ class _ProductCard extends StatelessWidget {
                 ],
               ),
             ),
-            // info area
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
               child: Column(
@@ -732,12 +742,8 @@ class _ProductCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // order button
                       GestureDetector(
-                        onTap: () => Navigator.of(context).pushNamed(
-                          AppRoutes.productDetails,
-                          arguments: ProductDetailsPageArgs(product: product),
-                        ),
+                        onTap: _quickOrder,
                         child: Container(
                           width: 30,
                           height: 30,
@@ -746,10 +752,10 @@ class _ProductCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(9),
                           ),
                           child: const Icon(
-                            CupertinoIcons.cart_fill_badge_plus,
-                            size: 14,
-                            color: Colors.white,
-                          ),
+                                  CupertinoIcons.cart_fill_badge_plus,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
                         ),
                       ),
                     ],
@@ -763,6 +769,7 @@ class _ProductCard extends StatelessWidget {
     );
   }
 }
+
 
 // ── Star row ──────────────────────────────────────────────────────────────────
 

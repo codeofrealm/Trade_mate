@@ -7,7 +7,7 @@ import '../../data/home_product_service.dart';
 import '../../data/home_user_profile_service.dart';
 import '../../data/models/home_user_address.dart';
 import '../widgets/product_details/home_product_detail_widgets.dart';
-import 'order_success_page.dart';
+import 'order_confirm_page.dart';
 
 class ProductDetailsPageArgs {
   const ProductDetailsPageArgs({this.product, this.productId, this.productName});
@@ -26,7 +26,6 @@ class ProductDetailsPage extends StatefulWidget {
 
 class _ProductDetailsPageState extends State<ProductDetailsPage> {
   bool _isAddingToCart = false;
-  bool _isOrdering = false;
   int _quantity = 1;
 
   ProductDetailsPageArgs get _args {
@@ -52,30 +51,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     }
   }
 
-  Future<void> _placeOrder({required AdminProduct product, required HomeUserAddress address}) async {
-    if (_isOrdering) return;
-    setState(() => _isOrdering = true);
-    try {
-      final orderId = await HomeProductService.instance.placeOrder(
-        product: product, address: address, quantity: _quantity,
-      );
-      if (!mounted) return;
-      await Navigator.of(context).pushReplacementNamed(
-        AppRoutes.orderSuccess,
-        arguments: OrderSuccessPageArgs(
-          productName: product.name,
-          quantity: _quantity,
-          totalAmount: product.price * _quantity,
-          orderId: orderId,
-        ),
-      );
-    } on HomeProductException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
-    } finally {
-      if (mounted) setState(() => _isOrdering = false);
-    }
-  }
+
 
   Future<void> _openProfilePage({bool showAddressHint = false}) async {
     if (!mounted) return;
@@ -112,9 +88,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
       product: product,
       quantity: _quantity,
       isAddingToCart: _isAddingToCart,
-      isOrdering: _isOrdering,
       onAddToCart: (p) => _addToCart(p),
-      onPlaceOrder: (p, a) => _placeOrder(product: p, address: a),
       onOpenProfile: ({bool showAddressHint = false}) => _openProfilePage(showAddressHint: showAddressHint),
       onQuantityChanged: (q) => setState(() => _quantity = q),
     );
@@ -165,7 +139,6 @@ class _FullProductDetailsPage extends StatefulWidget {
 
 class _FullProductDetailsPageState extends State<_FullProductDetailsPage> {
   bool _isAddingToCart = false;
-  bool _isOrdering = false;
   int _quantity = 1;
 
   Future<void> _addToCart() async {
@@ -185,30 +158,7 @@ class _FullProductDetailsPageState extends State<_FullProductDetailsPage> {
     }
   }
 
-  Future<void> _placeOrder(HomeUserAddress address) async {
-    if (_isOrdering) return;
-    setState(() => _isOrdering = true);
-    try {
-      final orderId = await HomeProductService.instance.placeOrder(
-        product: widget.product, address: address, quantity: _quantity,
-      );
-      if (!mounted) return;
-      await Navigator.of(context).pushReplacementNamed(
-        AppRoutes.orderSuccess,
-        arguments: OrderSuccessPageArgs(
-          productName: widget.product.name,
-          quantity: _quantity,
-          totalAmount: widget.product.price * _quantity,
-          orderId: orderId,
-        ),
-      );
-    } on HomeProductException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
-    } finally {
-      if (mounted) setState(() => _isOrdering = false);
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -216,9 +166,7 @@ class _FullProductDetailsPageState extends State<_FullProductDetailsPage> {
       product: widget.product,
       quantity: _quantity,
       isAddingToCart: _isAddingToCart,
-      isOrdering: _isOrdering,
       onAddToCart: (_) => _addToCart(),
-      onPlaceOrder: (p, a) => _placeOrder(a),
       onOpenProfile: ({bool showAddressHint = false}) async {
         if (showAddressHint) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -239,9 +187,7 @@ class _ProductDetailsBody extends StatelessWidget {
     required this.product,
     required this.quantity,
     required this.isAddingToCart,
-    required this.isOrdering,
     required this.onAddToCart,
-    required this.onPlaceOrder,
     required this.onOpenProfile,
     required this.onQuantityChanged,
   });
@@ -249,9 +195,7 @@ class _ProductDetailsBody extends StatelessWidget {
   final AdminProduct product;
   final int quantity;
   final bool isAddingToCart;
-  final bool isOrdering;
   final Future<void> Function(AdminProduct) onAddToCart;
-  final Future<void> Function(AdminProduct, HomeUserAddress) onPlaceOrder;
   final Future<void> Function({bool showAddressHint}) onOpenProfile;
   final void Function(int) onQuantityChanged;
 
@@ -386,19 +330,22 @@ class _ProductDetailsBody extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: FilledButton.icon(
-                      onPressed: (purchasable && !isOrdering)
+                      onPressed: purchasable
                           ? () {
                               if (!address.isComplete) {
                                 onOpenProfile(showAddressHint: true);
                                 return;
                               }
-                              onPlaceOrder(product, address);
+                              Navigator.of(context).pushNamed(
+                                AppRoutes.orderConfirm,
+                                arguments: OrderConfirmPageArgs(
+                                  product: product,
+                                  quantity: quantity,
+                                ),
+                              );
                             }
                           : null,
-                      icon: isOrdering
-                          ? const SizedBox(width: 14, height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Icon(Icons.shopping_bag_outlined),
+                      icon: const Icon(Icons.shopping_bag_outlined),
                       label: const Text('Buy Now'),
                     ),
                   ),

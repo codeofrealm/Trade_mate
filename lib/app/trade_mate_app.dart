@@ -8,6 +8,7 @@ import '../features/auth/presentation/pages/register_page.dart';
 import '../features/home/presentation/pages/home_notifications_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/home/presentation/pages/home_profile_page.dart';
+import '../features/home/presentation/pages/order_confirm_page.dart';
 import '../features/home/presentation/pages/order_details_page.dart';
 import '../features/home/presentation/pages/order_success_page.dart';
 import '../features/home/presentation/pages/product_details_page.dart';
@@ -188,6 +189,7 @@ class TradeMateApp extends StatelessWidget {
         AppRoutes.home: (_) => const HomePage(),
         AppRoutes.homeProfile: (_) => const HomeProfilePage(),
         AppRoutes.homeNotifications: (_) => const HomeNotificationsPage(),
+        AppRoutes.orderConfirm: (_) => const OrderConfirmPage(),
         AppRoutes.orderSuccess: (_) => const OrderSuccessPage(),
         AppRoutes.orderDetails: (_) => const OrderDetailsPage(),
         AppRoutes.admin: (_) => const AdminDashboardPage(),

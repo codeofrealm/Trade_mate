@@ -1,13 +1,88 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_routes.dart';
 import '../../data/models/home_user_order.dart';
-import 'order_details_page.dart';
 
-class HomeNotificationsPage extends StatelessWidget {
+class HomeNotificationsPage extends StatefulWidget {
   const HomeNotificationsPage({super.key});
+
+  @override
+  State<HomeNotificationsPage> createState() => _HomeNotificationsPageState();
+}
+
+class _HomeNotificationsPageState extends State<HomeNotificationsPage> {
+  final Set<String> _selected = {};
+  bool _isSelecting = false;
+
+  void _onLongPress(String id) {
+    setState(() {
+      _isSelecting = true;
+      _selected.add(id);
+    });
+  }
+
+  void _onTap(String id, HomeUserOrder order) {
+    if (_isSelecting) {
+      setState(() {
+        if (_selected.contains(id)) {
+          _selected.remove(id);
+          if (_selected.isEmpty) _isSelecting = false;
+        } else {
+          _selected.add(id);
+        }
+      });
+    } else {
+      Navigator.of(context).pushNamed(AppRoutes.orderDetails, arguments: order);
+    }
+  }
+
+  void _cancelSelection() {
+    setState(() {
+      _selected.clear();
+      _isSelecting = false;
+    });
+  }
+
+  void _showDeleteConfirm() {
+    showCupertinoDialog<void>(
+      context: context,
+      builder: (_) => CupertinoAlertDialog(
+        title: const Text('Delete Notifications'),
+        content: Text(
+            'Delete ${_selected.length} selected notification${_selected.length > 1 ? 's' : ''}?'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () async {
+              Navigator.pop(context);
+              await _deleteSelected();
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteSelected() async {
+    final ids = List<String>.from(_selected);
+    setState(() {
+      _selected.clear();
+      _isSelecting = false;
+    });
+    final batch = FirebaseFirestore.instance.batch();
+    for (final id in ids) {
+      batch.delete(FirebaseFirestore.instance.collection('orders').doc(id));
+    }
+    await batch.commit();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,8 +92,40 @@ class HomeNotificationsPage extends StatelessWidget {
       backgroundColor: const Color(0xFFF2F2F7),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF2F2F7),
-        title: const Text('Notifications'),
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
+        title: _isSelecting
+            ? Text('${_selected.length} Selected',
+                style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF000000)))
+            : const Text('Notifications',
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF000000))),
+        leading: _isSelecting
+            ? TextButton(
+                onPressed: _cancelSelection,
+                child: const Text('Cancel',
+                    style: TextStyle(
+                        color: Color(0xFF007AFF), fontSize: 15)),
+              )
+            : null,
+        actions: [
+          if (_isSelecting)
+            IconButton(
+              onPressed: _selected.isNotEmpty ? _showDeleteConfirm : null,
+              icon: Icon(
+                CupertinoIcons.trash,
+                color: _selected.isNotEmpty
+                    ? const Color(0xFFFF3B30)
+                    : const Color(0xFFC7C7CC),
+                size: 20,
+              ),
+            ),
+        ],
       ),
       body: uid == null
           ? const Center(child: Text('Please login.'))
@@ -30,13 +137,11 @@ class HomeNotificationsPage extends StatelessWidget {
               builder: (context, snap) {
                 if (!snap.hasData) {
                   return const Center(
-                      child: CircularProgressIndicator.adaptive());
+                      child: CupertinoActivityIndicator());
                 }
 
-                // Only delivered and cancelled
                 final orders = snap.data!.docs
-                    .map((d) =>
-                        HomeUserOrder.fromFirestore(d.id, d.data()))
+                    .map((d) => HomeUserOrder.fromFirestore(d.id, d.data()))
                     .where((o) => o.isDelivered || o.isCancelled)
                     .toList()
                   ..sort((a, b) =>
@@ -52,14 +157,14 @@ class HomeNotificationsPage extends StatelessWidget {
                         Container(
                           width: 64,
                           height: 64,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE5E5EA),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFE5E5EA),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
-                            Icons.notifications_none_rounded,
+                            CupertinoIcons.bell_slash,
                             color: Color(0xFF8E8E93),
-                            size: 32,
+                            size: 28,
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -86,8 +191,17 @@ class HomeNotificationsPage extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                   itemCount: orders.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) =>
-                      _NotifCard(order: orders[index]),
+                  itemBuilder: (context, index) {
+                    final order = orders[index];
+                    final isSelected = _selected.contains(order.id);
+                    return _NotifCard(
+                      order: order,
+                      isSelecting: _isSelecting,
+                      isSelected: isSelected,
+                      onTap: () => _onTap(order.id, order),
+                      onLongPress: () => _onLongPress(order.id),
+                    );
+                  },
                 );
               },
             ),
@@ -96,33 +210,49 @@ class HomeNotificationsPage extends StatelessWidget {
 }
 
 class _NotifCard extends StatelessWidget {
-  const _NotifCard({required this.order});
+  const _NotifCard({
+    required this.order,
+    required this.isSelecting,
+    required this.isSelected,
+    required this.onTap,
+    required this.onLongPress,
+  });
+
   final HomeUserOrder order;
+  final bool isSelecting;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
   @override
   Widget build(BuildContext context) {
     final isDelivered = order.isDelivered;
     final color =
         isDelivered ? const Color(0xFF34C759) : const Color(0xFFFF3B30);
-    final icon = isDelivered
-        ? Icons.check_circle_rounded
-        : Icons.cancel_rounded;
+    final icon =
+        isDelivered ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.xmark_circle_fill;
     final title = isDelivered ? 'Order Delivered' : 'Order Cancelled';
     final subtitle = order.productName.isEmpty
         ? 'Your order has been ${isDelivered ? 'delivered' : 'cancelled'}.'
         : '${order.productName} has been ${isDelivered ? 'delivered successfully' : 'cancelled'}.';
 
     return GestureDetector(
-      onTap: () => Navigator.of(context).pushNamed(
-        AppRoutes.orderDetails,
-        arguments: order,
-      ),
-      child: Container(
+      onTap: onTap,
+      onLongPress: onLongPress,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isSelected
+              ? const Color(0xFF007AFF).withValues(alpha: 0.08)
+              : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE5E5EA)),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF007AFF)
+                : const Color(0xFFE5E5EA),
+            width: isSelected ? 1.5 : 1,
+          ),
           boxShadow: const [
             BoxShadow(
                 color: Color(0x08000000),
@@ -133,16 +263,43 @@ class _NotifCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                shape: BoxShape.circle,
+            // selection circle or icon
+            if (isSelecting)
+              Padding(
+                padding: const EdgeInsets.only(right: 12, top: 2),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected
+                        ? const Color(0xFF007AFF)
+                        : Colors.transparent,
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color(0xFF007AFF)
+                          : const Color(0xFFC7C7CC),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: isSelected
+                      ? const Icon(CupertinoIcons.checkmark,
+                          size: 13, color: Colors.white)
+                      : null,
+                ),
+              )
+            else
+              Container(
+                width: 42,
+                height: 42,
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 22),
               ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,8 +338,9 @@ class _NotifCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded,
-                color: Color(0xFFC7C7CC), size: 18),
+            if (!isSelecting)
+              const Icon(CupertinoIcons.chevron_right,
+                  color: Color(0xFFC7C7CC), size: 16),
           ],
         ),
       ),

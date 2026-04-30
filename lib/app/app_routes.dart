@@ -5,6 +5,7 @@ abstract final class AppRoutes {
   static const home = '/home';
   static const homeProfile = '/home/profile';
   static const homeNotifications = '/home/notifications';
+  static const orderConfirm = '/order-confirm';
   static const orderSuccess = '/order-success';
   static const orderDetails = '/order-details';
   static const admin = '/admin';
