@@ -1,22 +1,20 @@
-import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 
 abstract final class LuxuryColors {
-  static const backgroundTop = Color(0xFF121216);
-  static const backgroundBottom = Color(0xFF060608);
-  static const gold = Color(0xFFD4AF37);
-  static const glass = Color(0x26FFFFFF);
-  static const glassStrong = Color(0x32FFFFFF);
-  static const border = Color(0x4DFFFFFF);
-  static const textPrimary = CupertinoColors.white;
-  static const textSoft = Color(0xFFB7B7BF);
+  static const backgroundTop = Color(0xFFF7F9FC);
+  static const backgroundBottom = Color(0xFFF7F9FC);
+  static const gold = Color(0xFF007AFF);
+  static const glass = Color(0xFFFFFFFF);
+  static const glassStrong = Color(0xFFFFFFFF);
+  static const border = Color(0xFFDCE3EE);
+  static const textPrimary = Color(0xFF172033);
+  static const textSoft = Color(0xFF687386);
 }
 
 abstract final class LuxuryInsets {
-  static const page = EdgeInsets.fromLTRB(16, 14, 16, 34);
-  static const sectionGap = SizedBox(height: 14);
-  static const tileGap = SizedBox(height: 10);
+  static const page = EdgeInsets.fromLTRB(12, 12, 12, 24);
+  static const sectionGap = SizedBox(height: 10);
+  static const tileGap = SizedBox(height: 8);
 }
 
 class LuxuryBackground extends StatelessWidget {
@@ -27,34 +25,8 @@ class LuxuryBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [LuxuryColors.backgroundTop, LuxuryColors.backgroundBottom],
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: -80,
-            left: -30,
-            child: _GlowOrb(
-              size: 180,
-              color: LuxuryColors.gold.withValues(alpha: 0.12),
-            ),
-          ),
-          Positioned(
-            top: 190,
-            right: -60,
-            child: _GlowOrb(
-              size: 150,
-              color: CupertinoColors.white.withValues(alpha: 0.07),
-            ),
-          ),
-          child,
-        ],
-      ),
+      decoration: const BoxDecoration(color: LuxuryColors.backgroundTop),
+      child: child,
     );
   }
 }
@@ -63,8 +35,8 @@ class LuxuryGlassCard extends StatelessWidget {
   const LuxuryGlassCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(16),
-    this.radius = 16,
+    this.padding = const EdgeInsets.all(14),
+    this.radius = 8,
     this.tint,
   });
 
@@ -75,27 +47,21 @@ class LuxuryGlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: tint ?? LuxuryColors.glassStrong,
-            borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: LuxuryColors.border, width: 0.9),
-            boxShadow: [
-              BoxShadow(
-                color: CupertinoColors.black.withValues(alpha: 0.28),
-                blurRadius: 22,
-                offset: const Offset(0, 10),
-              ),
-            ],
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: tint ?? LuxuryColors.glassStrong,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: LuxuryColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: CupertinoColors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          child: child,
-        ),
+        ],
       ),
+      child: child,
     );
   }
 }
@@ -109,7 +75,7 @@ class LuxurySectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(2, 2, 2, 10),
+      padding: const EdgeInsets.fromLTRB(2, 2, 2, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -117,8 +83,9 @@ class LuxurySectionTitle extends StatelessWidget {
             title,
             style: const TextStyle(
               color: LuxuryColors.textPrimary,
-              fontSize: 18,
+              fontSize: 17,
               fontWeight: FontWeight.w700,
+              letterSpacing: 0,
             ),
           ),
           if (subtitle != null) ...[
@@ -128,29 +95,11 @@ class LuxurySectionTitle extends StatelessWidget {
               style: const TextStyle(
                 color: LuxuryColors.textSoft,
                 fontSize: 13,
+                letterSpacing: 0,
               ),
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-class _GlowOrb extends StatelessWidget {
-  const _GlowOrb({required this.size, required this.color});
-
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [BoxShadow(color: color, blurRadius: 70, spreadRadius: 12)],
       ),
     );
   }

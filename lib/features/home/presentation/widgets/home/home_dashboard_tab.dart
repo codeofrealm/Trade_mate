@@ -10,12 +10,15 @@ import '../../pages/order_confirm_page.dart';
 import '../../pages/product_details_page.dart';
 
 class HomeDashboardTab extends StatefulWidget {
-  const HomeDashboardTab(
-      {super.key, required this.name, required this.onOrdersTap});
+  const HomeDashboardTab({
+    super.key,
+    required this.name,
+    required this.onOrdersTap,
+  });
 
   final String name;
   final VoidCallback onOrdersTap;
-
+  
   @override
   State<HomeDashboardTab> createState() => _HomeDashboardTabState();
 }
@@ -50,11 +53,12 @@ class _HomeDashboardTabState extends State<HomeDashboardTab> {
         ),
 
         // ── Low stock section ──
+        SliverToBoxAdapter(child: _DashboardSummarySection()),
         SliverToBoxAdapter(child: _LowStockSection()),
 
         // ── Active products label ──
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
           sliver: SliverToBoxAdapter(
             child: Row(
               children: [
@@ -64,7 +68,7 @@ class _HomeDashboardTabState extends State<HomeDashboardTab> {
                     color: Color(0xFF000000),
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: -0.4,
+                    letterSpacing: 0,
                   ),
                 ),
                 const Spacer(),
@@ -84,7 +88,7 @@ class _HomeDashboardTabState extends State<HomeDashboardTab> {
         // ── Products grid ──
         _ProductsSliver(search: _search),
 
-        const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
+        const SliverPadding(padding: EdgeInsets.only(bottom: 112)),
       ],
     );
   }
@@ -116,10 +120,14 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(_HeaderDelegate old) => old.name != name;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
-      color: const Color(0xFFF2F2F7),
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+      color: const Color(0xFFF7F9FC),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -128,8 +136,8 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
             children: [
               // avatar
               Container(
-                width: 36,
-                height: 36,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: const LinearGradient(
@@ -151,7 +159,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
-                    fontSize: 15,
+                    fontSize: 16,
                   ),
                 ),
               ),
@@ -164,18 +172,18 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                     style: TextStyle(
                       color: Color(0xFF8E8E93),
                       fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.8,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.6,
                     ),
                   ),
-                  const SizedBox(height: 1),
+                  const SizedBox(height: 2),
                   Text(
                     name,
                     style: const TextStyle(
                       color: Color(0xFF000000),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      letterSpacing: -0.3,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                      letterSpacing: 0,
                     ),
                   ),
                 ],
@@ -200,10 +208,10 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
           const Text(
             'Dashboard',
             style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF000000),
-              letterSpacing: -0.6,
+              fontSize: 30,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF111827),
+              letterSpacing: 0,
               height: 1.0,
             ),
           ),
@@ -223,7 +231,11 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
 // ── Nav icon button ───────────────────────────────────────────────────────────
 
 class _NavIconBtn extends StatelessWidget {
-  const _NavIconBtn({required this.icon, this.hasDot = false, required this.onTap});
+  const _NavIconBtn({
+    required this.icon,
+    this.hasDot = false,
+    required this.onTap,
+  });
 
   final IconData icon;
   final bool hasDot;
@@ -231,40 +243,44 @@ class _NavIconBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => onTap(context),
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x10000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(icon, color: const Color(0xFF3C3C43), size: 18),
-            if (hasDot)
-              Positioned(
-                right: 7,
-                top: 7,
-                child: Container(
-                  width: 7,
-                  height: 7,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFF3B30),
-                    shape: BoxShape.circle,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onTap(context),
+        customBorder: const CircleBorder(),
+        child: Ink(
+          width: 36,
+          height: 36,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x10000000),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(icon, color: const Color(0xFF3C3C43), size: 18),
+              if (hasDot)
+                Positioned(
+                  right: 7,
+                  top: 7,
+                  child: Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFF3B30),
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -287,48 +303,45 @@ class _SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 42,
+      height: 46,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFD7DEE9), width: 1.2),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 6,
+            color: Color(0x1A000000),
+            blurRadius: 7,
             offset: Offset(0, 2),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.only(left: 18, right: 4),
       child: Row(
         children: [
-          const Icon(CupertinoIcons.search,
-              color: Color(0xFFAEAEB2), size: 17),
-          const SizedBox(width: 8),
           Expanded(
-            child: TextField(
+            child: CupertinoTextField.borderless(
               controller: controller,
               onChanged: onChanged,
-              textAlignVertical: TextAlignVertical.center,
-              decoration: const InputDecoration(
-                hintText: 'Search products...',
-                hintStyle: TextStyle(
-                    color: Color(0xFFAEAEB2),
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w400),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
+              placeholder: 'Search...',
+              padding: EdgeInsets.zero,
+              cursorColor: const Color(0xFF007AFF),
+              placeholderStyle: const TextStyle(
+                color: Color(0xFF6F7785),
+                fontSize: 18,
+                fontWeight: FontWeight.w400,
               ),
               style: const TextStyle(
-                  fontSize: 14.5,
-                  color: Color(0xFF000000),
-                  fontWeight: FontWeight.w400),
+                fontSize: 18,
+                color: Color(0xFF111827),
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
+          const SizedBox(width: 8),
           ValueListenableBuilder<TextEditingValue>(
             valueListenable: controller,
-            builder: (_, val, __) => val.text.isNotEmpty
+            builder: (context, val, child) => val.text.isNotEmpty
                 ? GestureDetector(
                     onTap: onClear,
                     child: Container(
@@ -347,6 +360,16 @@ class _SearchBar extends StatelessWidget {
                   )
                 : const SizedBox.shrink(),
           ),
+          Container(
+            width: 42,
+            height: 42,
+            alignment: Alignment.center,
+            child: const Icon(
+              CupertinoIcons.search,
+              color: Color(0xFF2F333A),
+              size: 29,
+            ),
+          ),
         ],
       ),
     );
@@ -355,6 +378,126 @@ class _SearchBar extends StatelessWidget {
 
 // ── Low stock section ─────────────────────────────────────────────────────────
 
+class _DashboardSummarySection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<AdminProduct>>(
+      stream: HomeProductService.instance.streamVisibleProducts(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final products = snapshot.data!;
+        final lowStock = products.where((p) => p.stock <= 5 && p.stock > 0);
+        final categories = products
+            .map((p) => p.category.trim())
+            .where((category) => category.isNotEmpty);
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: _SummaryCard(
+                  icon: CupertinoIcons.cube_box,
+                  label: 'Products',
+                  value: '${products.length}',
+                  color: const Color(0xFF007AFF),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _SummaryCard(
+                  icon: CupertinoIcons.flame,
+                  label: 'Low Stock',
+                  value: '${lowStock.length}',
+                  color: const Color(0xFFFF3B30),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _SummaryCard(
+                  icon: CupertinoIcons.square_grid_2x2,
+                  label: 'Types',
+                  value: '${categories.toSet().length}',
+                  color: const Color(0xFF34C759),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 78),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFDCE3EE)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Color(0xFF111827),
+              fontSize: 19,
+              fontWeight: FontWeight.w800,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 3),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              label,
+              maxLines: 1,
+              style: const TextStyle(
+                color: Color(0xFF6B7280),
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _LowStockSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -362,8 +505,9 @@ class _LowStockSection extends StatelessWidget {
       stream: HomeProductService.instance.streamVisibleProducts(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const SizedBox.shrink();
-        final low =
-            snapshot.data!.where((p) => p.stock <= 5 && p.stock > 0).toList();
+        final low = snapshot.data!
+            .where((p) => p.stock <= 5 && p.stock > 0)
+            .toList();
         if (low.isEmpty) return const SizedBox.shrink();
 
         final screenW = MediaQuery.of(context).size.width;
@@ -378,11 +522,14 @@ class _LowStockSection extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
               child: Row(
                 children: [
-                  const Icon(CupertinoIcons.flame_fill,
-                      size: 13, color: Color(0xFFFF3B30)),
+                  const Icon(
+                    CupertinoIcons.flame_fill,
+                    size: 13,
+                    color: Color(0xFFFF3B30),
+                  ),
                   const SizedBox(width: 5),
                   const Text(
-                    'Low Stock — Grab it fast!',
+                    'Low Stock - Grab it fast',
                     style: TextStyle(
                       color: Color(0xFF000000),
                       fontSize: 15,
@@ -393,7 +540,9 @@ class _LowStockSection extends StatelessWidget {
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFF3B30).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -401,9 +550,10 @@ class _LowStockSection extends StatelessWidget {
                     child: Text(
                       '${low.length} item${low.length > 1 ? 's' : ''}',
                       style: const TextStyle(
-                          color: Color(0xFFFF3B30),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700),
+                        color: Color(0xFFFF3B30),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],
@@ -411,14 +561,13 @@ class _LowStockSection extends StatelessWidget {
             ),
             // horizontal scroll
             SizedBox(
-              height: 110,
+              height: 108,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: low.length,
                 itemBuilder: (context, i) => Padding(
-                  padding: EdgeInsets.only(
-                      right: i < low.length - 1 ? 12 : 0),
+                  padding: EdgeInsets.only(right: i < low.length - 1 ? 10 : 0),
                   child: SizedBox(
                     width: cardW,
                     child: _LowStockCard(product: low[i]),
@@ -448,33 +597,39 @@ class _LowStockCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFDCE3EE)),
           boxShadow: const [
             BoxShadow(
-                color: Color(0x0C000000),
-                blurRadius: 10,
-                offset: Offset(0, 3)),
+              color: Color(0x08000000),
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
           ],
         ),
         child: Row(
           children: [
             // image
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.horizontal(left: Radius.circular(14)),
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(12),
+              ),
               child: Container(
                 width: 90,
                 color: const Color(0xFFF2F2F7),
                 child: _ProductImage(
-                    imageUrl: product.imageUrl,
-                    imageBase64: product.imageBase64),
+                  imageUrl: product.imageUrl,
+                  imageBase64: product.imageBase64,
+                ),
               ),
             ),
             // info
             Expanded(
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -482,7 +637,9 @@ class _LowStockCard extends StatelessWidget {
                     // badge
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3),
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFF3B30),
                         borderRadius: BorderRadius.circular(20),
@@ -490,9 +647,10 @@ class _LowStockCard extends StatelessWidget {
                       child: Text(
                         'Only ${product.stock} left!',
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800),
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -501,19 +659,21 @@ class _LowStockCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          color: Color(0xFF000000),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.2),
+                        color: Color(0xFF000000),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Rs ${product.price.toStringAsFixed(0)}',
                       style: const TextStyle(
-                          color: Color(0xFF007AFF),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3),
+                        color: Color(0xFF007AFF),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                      ),
                     ),
                   ],
                 ),
@@ -521,8 +681,11 @@ class _LowStockCard extends StatelessWidget {
             ),
             const Padding(
               padding: EdgeInsets.only(right: 12),
-              child: Icon(CupertinoIcons.chevron_right,
-                  size: 14, color: Color(0xFFC7C7CC)),
+              child: Icon(
+                CupertinoIcons.chevron_right,
+                size: 14,
+                color: Color(0xFFC7C7CC),
+              ),
             ),
           ],
         ),
@@ -544,7 +707,7 @@ class _ProductsSliver extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             sliver: SliverToBoxAdapter(
               child: _StateCard(
                 icon: CupertinoIcons.wifi_slash,
@@ -565,14 +728,16 @@ class _ProductsSliver extends StatelessWidget {
         if (search.isNotEmpty) {
           final q = search.toLowerCase();
           products = products
-              .where((p) =>
-                  p.name.toLowerCase().contains(q) ||
-                  p.category.toLowerCase().contains(q))
+              .where(
+                (p) =>
+                    p.name.toLowerCase().contains(q) ||
+                    p.category.toLowerCase().contains(q),
+              )
               .toList();
         }
         if (products.isEmpty) {
           return SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             sliver: SliverToBoxAdapter(
               child: _StateCard(
                 icon: CupertinoIcons.bag,
@@ -589,14 +754,12 @@ class _ProductsSliver extends StatelessWidget {
           sliver: SliverGrid(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: 0.68,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
+              childAspectRatio: 0.7,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
             ),
             delegate: SliverChildBuilderDelegate(
-              (context, index) => _ProductCard(
-                product: list[index],
-              ),
+              (context, index) => _ProductCard(product: list[index]),
               childCount: list.length,
             ),
           ),
@@ -619,14 +782,10 @@ class _ProductCard extends StatefulWidget {
 }
 
 class _ProductCardState extends State<_ProductCard> {
-
   Future<void> _quickOrder() async {
     await Navigator.of(context).pushNamed(
       AppRoutes.orderConfirm,
-      arguments: OrderConfirmPageArgs(
-        product: widget.product,
-        quantity: 1,
-      ),
+      arguments: OrderConfirmPageArgs(product: widget.product, quantity: 1),
     );
   }
 
@@ -641,10 +800,11 @@ class _ProductCardState extends State<_ProductCard> {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFDCE3EE)),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x0A000000),
+              color: Color(0x08000000),
               blurRadius: 12,
               offset: Offset(0, 4),
             ),
@@ -657,8 +817,9 @@ class _ProductCardState extends State<_ProductCard> {
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(16)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
                     child: Container(
                       color: const Color(0xFFF2F2F7),
                       width: double.infinity,
@@ -672,10 +833,13 @@ class _ProductCardState extends State<_ProductCard> {
                     top: 8,
                     left: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.92),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         product.category,
@@ -692,10 +856,13 @@ class _ProductCardState extends State<_ProductCard> {
                       top: 8,
                       right: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFF3B30),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           '${product.stock} left',
@@ -749,13 +916,13 @@ class _ProductCardState extends State<_ProductCard> {
                           height: 30,
                           decoration: BoxDecoration(
                             color: const Color(0xFF007AFF),
-                            borderRadius: BorderRadius.circular(9),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
-                                  CupertinoIcons.cart_fill_badge_plus,
-                                  size: 14,
-                                  color: Colors.white,
-                                ),
+                            CupertinoIcons.cart_fill_badge_plus,
+                            size: 14,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
@@ -770,7 +937,6 @@ class _ProductCardState extends State<_ProductCard> {
   }
 }
 
-
 // ── Star row ──────────────────────────────────────────────────────────────────
 
 class _StarRow extends StatelessWidget {
@@ -784,14 +950,23 @@ class _StarRow extends StatelessWidget {
       children: [
         ...List.generate(5, (i) {
           if (i < stars.floor()) {
-            return const Icon(CupertinoIcons.star_fill,
-                size: 10, color: Color(0xFFFF9500));
+            return const Icon(
+              CupertinoIcons.star_fill,
+              size: 10,
+              color: Color(0xFFFF9500),
+            );
           } else if (i < stars) {
-            return const Icon(CupertinoIcons.star_lefthalf_fill,
-                size: 10, color: Color(0xFFFF9500));
+            return const Icon(
+              CupertinoIcons.star_lefthalf_fill,
+              size: 10,
+              color: Color(0xFFFF9500),
+            );
           }
-          return const Icon(CupertinoIcons.star,
-              size: 10, color: Color(0xFFD1D1D6));
+          return const Icon(
+            CupertinoIcons.star,
+            size: 10,
+            color: Color(0xFFD1D1D6),
+          );
         }),
         const SizedBox(width: 4),
         Text(
@@ -831,7 +1006,7 @@ class _ProductImage extends StatelessWidget {
       return Image.network(
         url,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const _ImgPlaceholder(),
+        errorBuilder: (context, error, stackTrace) => const _ImgPlaceholder(),
       );
     }
     return const _ImgPlaceholder();
@@ -843,8 +1018,8 @@ class _ImgPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Center(
-        child: Icon(CupertinoIcons.photo, color: Color(0xFFC7C7CC), size: 28),
-      );
+    child: Icon(CupertinoIcons.photo, color: Color(0xFFC7C7CC), size: 28),
+  );
 }
 
 // ── State card ────────────────────────────────────────────────────────────────
@@ -862,7 +1037,8 @@ class _StateCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFDCE3EE)),
       ),
       child: Column(
         children: [

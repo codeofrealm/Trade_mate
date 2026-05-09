@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/models/admin_user_order.dart';
@@ -10,7 +11,8 @@ class AdminCompletedOrdersTab extends StatefulWidget {
   const AdminCompletedOrdersTab({super.key});
 
   @override
-  State<AdminCompletedOrdersTab> createState() => _AdminCompletedOrdersTabState();
+  State<AdminCompletedOrdersTab> createState() =>
+      _AdminCompletedOrdersTabState();
 }
 
 class _AdminCompletedOrdersTabState extends State<AdminCompletedOrdersTab> {
@@ -53,11 +55,13 @@ class _AdminCompletedOrdersTabState extends State<AdminCompletedOrdersTab> {
         if (_search.isNotEmpty) {
           final q = _search.toLowerCase();
           filtered = filtered
-              .where((o) =>
-                  o.productName.toLowerCase().contains(q) ||
-                  o.productCategory.toLowerCase().contains(q) ||
-                  o.id.toLowerCase().contains(q) ||
-                  o.shortUserId.toLowerCase().contains(q))
+              .where(
+                (o) =>
+                    o.productName.toLowerCase().contains(q) ||
+                    o.productCategory.toLowerCase().contains(q) ||
+                    o.id.toLowerCase().contains(q) ||
+                    o.shortUserId.toLowerCase().contains(q),
+              )
               .toList();
         }
 
@@ -123,7 +127,8 @@ class _AdminCompletedOrdersTabState extends State<AdminCompletedOrdersTab> {
       context: context,
       backgroundColor: const Color(0xFFF2F2F7),
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (_) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         child: Column(
@@ -132,44 +137,60 @@ class _AdminCompletedOrdersTabState extends State<AdminCompletedOrdersTab> {
           children: [
             Center(
               child: Container(
-                width: 36, height: 4,
+                width: 36,
+                height: 4,
                 decoration: BoxDecoration(
-                    color: const Color(0xFFD1D1D6),
-                    borderRadius: BorderRadius.circular(2)),
+                  color: const Color(0xFFD1D1D6),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            const Text('Filter Completed Orders',
-                style: TextStyle(
-                    fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -0.4)),
+            const Text(
+              'Filter Completed Orders',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.4,
+              ),
+            ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: ['all', 'delivered', 'cancelled'].map((s) {
                 final selected = _filterStatus == s;
-                final color =
-                    s == 'all' ? const Color(0xFF007AFF) : adminStatusColor(s);
+                final color = s == 'all'
+                    ? const Color(0xFF007AFF)
+                    : adminStatusColor(s);
                 return GestureDetector(
                   onTap: () {
                     setState(() => _filterStatus = s);
                     Navigator.pop(context);
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: selected ? color : Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                          color: selected ? color : const Color(0xFFE5E5EA)),
+                        color: selected ? color : const Color(0xFFE5E5EA),
+                      ),
                     ),
                     child: Text(
                       s == 'all' ? 'All' : s[0].toUpperCase() + s.substring(1),
                       style: TextStyle(
-                          color: selected ? Colors.white : const Color(0xFF3C3C43),
-                          fontWeight:
-                              selected ? FontWeight.w700 : FontWeight.w500,
-                          fontSize: 13),
+                        color: selected
+                            ? Colors.white
+                            : const Color(0xFF3C3C43),
+                        fontWeight: selected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 );
@@ -211,7 +232,7 @@ class _CompletedHeader extends SliverPersistentHeaderDelegate {
   final VoidCallback onFilterTap;
   final VoidCallback onFilterClear;
 
-  double get _height => filterStatus != 'all' ? 242 : 214;
+  double get _height => filterStatus != 'all' ? 250 : 222;
 
   @override
   double get minExtent => _height;
@@ -229,19 +250,26 @@ class _CompletedHeader extends SliverPersistentHeaderDelegate {
       old.filteredCount != filteredCount;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
       color: const Color(0xFFF2F2F7),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Completed Orders',
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF000000),
-                  letterSpacing: -0.4)),
+          const Text(
+            'Completed Orders',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF000000),
+              letterSpacing: -0.4,
+            ),
+          ),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
@@ -252,13 +280,29 @@ class _CompletedHeader extends SliverPersistentHeaderDelegate {
             ),
             child: Row(
               children: [
-                AdminMiniStat(label: 'Total', value: '$totalCompleted', color: const Color(0xFF007AFF)),
+                AdminMiniStat(
+                  label: 'Total',
+                  value: '$totalCompleted',
+                  color: const Color(0xFF007AFF),
+                ),
                 AdminVertDivider(),
-                AdminMiniStat(label: 'Delivered', value: '$deliveredCount', color: const Color(0xFF34C759)),
+                AdminMiniStat(
+                  label: 'Delivered',
+                  value: '$deliveredCount',
+                  color: const Color(0xFF34C759),
+                ),
                 AdminVertDivider(),
-                AdminMiniStat(label: 'Cancelled', value: '$cancelledCount', color: const Color(0xFFFF3B30)),
+                AdminMiniStat(
+                  label: 'Cancelled',
+                  value: '$cancelledCount',
+                  color: const Color(0xFFFF3B30),
+                ),
                 AdminVertDivider(),
-                AdminMiniStat(label: 'Revenue', value: adminFormatRs(totalAmount), color: const Color(0xFF5856D6)),
+                AdminMiniStat(
+                  label: 'Revenue',
+                  value: adminFormatRs(totalAmount),
+                  color: const Color(0xFF5856D6),
+                ),
               ],
             ),
           ),
@@ -308,37 +352,72 @@ class _CompletedSearchRow extends StatelessWidget {
           children: [
             Expanded(
               child: Container(
-                height: 40,
+                height: 46,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE5E5EA)),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: const Color(0xFFD7DEE9),
+                    width: 1.2,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x14000000),
+                      blurRadius: 7,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.only(left: 18, right: 4),
                 child: Row(
                   children: [
-                    const Icon(Icons.search, color: Color(0xFF8E8E93), size: 17),
-                    const SizedBox(width: 8),
                     Expanded(
-                      child: TextField(
+                      child: CupertinoTextField.borderless(
                         controller: searchCtrl,
                         onChanged: onSearchChanged,
-                        decoration: const InputDecoration(
-                          hintText: 'Search completed orders...',
-                          hintStyle: TextStyle(color: Color(0xFFC7C7CC), fontSize: 13),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
+                        placeholder: 'Search completed orders...',
+                        padding: EdgeInsets.zero,
+                        cursorColor: const Color(0xFF4B46FF),
+                        placeholderStyle: const TextStyle(
+                          color: Color(0xFF6F7785),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
                         ),
-                        style: const TextStyle(fontSize: 13),
+                        style: const TextStyle(
+                          color: Color(0xFF111827),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     if (search.isNotEmpty)
                       GestureDetector(
                         onTap: onSearchClear,
-                        child: const Icon(Icons.close_rounded,
-                            color: Color(0xFFC7C7CC), size: 15),
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFB8C0CC),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close_rounded,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
                       ),
+                    Container(
+                      width: 42,
+                      height: 42,
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        CupertinoIcons.search,
+                        color: Color(0xFF2F333A),
+                        size: 28,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -347,20 +426,27 @@ class _CompletedSearchRow extends StatelessWidget {
             GestureDetector(
               onTap: onFilterTap,
               child: Container(
-                width: 40, height: 40,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
-                  color: filterStatus == 'all' ? Colors.white : const Color(0xFF007AFF),
-                  borderRadius: BorderRadius.circular(12),
+                  color: filterStatus == 'all'
+                      ? Colors.white
+                      : const Color(0xFF4B46FF),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                      color: filterStatus == 'all'
-                          ? const Color(0xFFE5E5EA)
-                          : const Color(0xFF007AFF)),
-                ),
-                child: Icon(Icons.tune_rounded,
-                    size: 18,
                     color: filterStatus == 'all'
-                        ? const Color(0xFF8E8E93)
-                        : Colors.white),
+                        ? const Color(0xFFD7DEE9)
+                        : const Color(0xFF4B46FF),
+                    width: 1.2,
+                  ),
+                ),
+                child: Icon(
+                  Icons.tune_rounded,
+                  size: 18,
+                  color: filterStatus == 'all'
+                      ? const Color(0xFF8E8E93)
+                      : Colors.white,
+                ),
               ),
             ),
           ],
@@ -370,9 +456,12 @@ class _CompletedSearchRow extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: adminStatusColor(filterStatus).withOpacity(0.12),
+                  color: adminStatusColor(filterStatus).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -381,22 +470,28 @@ class _CompletedSearchRow extends StatelessWidget {
                     Text(
                       filterStatus[0].toUpperCase() + filterStatus.substring(1),
                       style: TextStyle(
-                          color: adminStatusColor(filterStatus),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12),
+                        color: adminStatusColor(filterStatus),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
                     ),
                     const SizedBox(width: 5),
                     GestureDetector(
                       onTap: onFilterClear,
-                      child: Icon(Icons.close_rounded,
-                          size: 13, color: adminStatusColor(filterStatus)),
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 13,
+                        color: adminStatusColor(filterStatus),
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              Text('$filteredCount orders',
-                  style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 12)),
+              Text(
+                '$filteredCount orders',
+                style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 12),
+              ),
             ],
           ),
         ],

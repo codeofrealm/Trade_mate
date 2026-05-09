@@ -32,15 +32,20 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: Color(0xFFF2F2F7),
-      systemNavigationBarIconBrightness: Brightness.dark,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Color(0xFFF7F9FC),
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
 
     final pages = <Widget>[
-      HomeDashboardTab(name: _displayName, onOrdersTap: () => _handleTabChange(2)),
+      HomeDashboardTab(
+        name: _displayName,
+        onOrdersTap: () => _handleTabChange(2),
+      ),
       const HomeCartTab(),
       const HomeOrdersTab(),
       const HomeAnalyticsTab(),
@@ -52,18 +57,27 @@ class _HomePageState extends State<HomePage> {
         if (!didPop) SystemNavigator.pop();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF2F2F7),
+        extendBody: true,
+        backgroundColor: const Color(0xFFF7F9FC),
         body: GlassBackground(
           child: SafeArea(
             bottom: false,
-            child: IndexedStack(index: _currentIndex, children: pages),
-          ),
-        ),
-        bottomNavigationBar: ColoredBox(
-          color: const Color(0xFFF2F2F7),
-          child: HomeFloatingNavBar(
-            currentIndex: _currentIndex,
-            onTap: _handleTabChange,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: IndexedStack(index: _currentIndex, children: pages),
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: HomeFloatingNavBar(
+                    currentIndex: _currentIndex,
+                    onTap: _handleTabChange,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../features/admin/presentation/pages/admin_dashboard_page.dart';
 import '../features/admin/presentation/pages/admin_product_form_page.dart';
+import '../features/auth/presentation/pages/intro_page.dart';
 import '../features/auth/presentation/pages/login_page.dart';
 import '../features/auth/presentation/pages/register_page.dart';
 import '../features/home/presentation/pages/home_notifications_page.dart';
@@ -20,10 +21,12 @@ class TradeMateApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
+    );
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -36,9 +39,9 @@ class TradeMateApp extends StatelessWidget {
           seedColor: const Color(0xFF007AFF),
           brightness: Brightness.light,
         ),
-        scaffoldBackgroundColor: const Color(0xFFF2F2F7),
+        scaffoldBackgroundColor: const Color(0xFFF7F9FC),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFF2F2F7),
+          backgroundColor: Color(0xFFF7F9FC),
           surfaceTintColor: Colors.transparent,
           elevation: 0,
           scrolledUnderElevation: 0,
@@ -47,7 +50,7 @@ class TradeMateApp extends StatelessWidget {
             color: Color(0xFF000000),
             fontSize: 17,
             fontWeight: FontWeight.w600,
-            letterSpacing: -0.4,
+            letterSpacing: 0,
           ),
           centerTitle: true,
         ),
@@ -56,14 +59,14 @@ class TradeMateApp extends StatelessWidget {
             backgroundColor: const Color(0xFF007AFF),
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(8),
             ),
             elevation: 0,
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 14),
             textStyle: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w600,
-              letterSpacing: -0.3,
+              letterSpacing: 0,
             ),
           ),
         ),
@@ -72,13 +75,13 @@ class TradeMateApp extends StatelessWidget {
             backgroundColor: const Color(0xFF007AFF),
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(8),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 14),
             textStyle: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w600,
-              letterSpacing: -0.3,
+              letterSpacing: 0,
             ),
           ),
         ),
@@ -87,13 +90,13 @@ class TradeMateApp extends StatelessWidget {
             foregroundColor: const Color(0xFF007AFF),
             side: const BorderSide(color: Color(0xFF007AFF), width: 1.2),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(8),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 14),
             textStyle: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w600,
-              letterSpacing: -0.3,
+              letterSpacing: 0,
             ),
           ),
         ),
@@ -111,26 +114,26 @@ class TradeMateApp extends StatelessWidget {
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
-            vertical: 14,
+            vertical: 13,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFD1D1D6), width: 1),
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Color(0xFFDCE3EE), width: 1),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFD1D1D6), width: 1),
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Color(0xFFDCE3EE), width: 1),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             borderSide: const BorderSide(color: Color(0xFF007AFF), width: 1.5),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             borderSide: const BorderSide(color: Color(0xFFFF3B30), width: 1),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             borderSide: const BorderSide(color: Color(0xFFFF3B30), width: 1.5),
           ),
           hintStyle: const TextStyle(
@@ -138,14 +141,8 @@ class TradeMateApp extends StatelessWidget {
             fontSize: 16,
             fontWeight: FontWeight.w400,
           ),
-          labelStyle: const TextStyle(
-            color: Color(0xFF8E8E93),
-            fontSize: 15,
-          ),
-          errorStyle: const TextStyle(
-            color: Color(0xFFFF3B30),
-            fontSize: 12,
-          ),
+          labelStyle: const TextStyle(color: Color(0xFF8E8E93), fontSize: 15),
+          errorStyle: const TextStyle(color: Color(0xFFFF3B30), fontSize: 12),
         ),
         checkboxTheme: CheckboxThemeData(
           fillColor: WidgetStateProperty.resolveWith((states) {
@@ -166,7 +163,8 @@ class TradeMateApp extends StatelessWidget {
           color: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
+            side: const BorderSide(color: Color(0xFFDCE3EE)),
           ),
           margin: EdgeInsets.zero,
         ),
@@ -177,13 +175,14 @@ class TradeMateApp extends StatelessWidget {
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           behavior: SnackBarBehavior.floating,
         ),
       ),
       initialRoute: AppRoutes.start,
       routes: {
         AppRoutes.start: (_) => const StartPage(),
+        AppRoutes.intro: (_) => const IntroPage(),
         AppRoutes.login: (_) => const LoginPage(),
         AppRoutes.register: (_) => const RegisterPage(),
         AppRoutes.home: (_) => const HomePage(),

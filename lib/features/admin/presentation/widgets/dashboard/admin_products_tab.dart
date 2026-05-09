@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/models/admin_product.dart';
@@ -39,11 +40,15 @@ class _AdminProductsTabState extends State<AdminProductsTab> {
         isActive: !product.isActive,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(product.isActive
-            ? 'Product deactivated successfully.'
-            : 'Product activated successfully.'),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            product.isActive
+                ? 'Product deactivated successfully.'
+                : 'Product activated successfully.',
+          ),
+        ),
+      );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -88,9 +93,11 @@ class _AdminProductsTabState extends State<AdminProductsTab> {
         if (_search.isNotEmpty) {
           final q = _search.toLowerCase();
           filtered = all
-              .where((p) =>
-                  p.name.toLowerCase().contains(q) ||
-                  p.category.toLowerCase().contains(q))
+              .where(
+                (p) =>
+                    p.name.toLowerCase().contains(q) ||
+                    p.category.toLowerCase().contains(q),
+              )
               .toList();
         }
 
@@ -131,21 +138,18 @@ class _AdminProductsTabState extends State<AdminProductsTab> {
                 : SliverPadding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                     sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final product = filtered[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: _ProductCard(
-                              product: product,
-                              isBusy: _busyIds.contains(product.id),
-                              onEditTap: () => widget.onEditTap(product),
-                              onToggleTap: () => _toggleStatus(product),
-                            ),
-                          );
-                        },
-                        childCount: filtered.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final product = filtered[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _ProductCard(
+                            product: product,
+                            isBusy: _busyIds.contains(product.id),
+                            onEditTap: () => widget.onEditTap(product),
+                            onToggleTap: () => _toggleStatus(product),
+                          ),
+                        );
+                      }, childCount: filtered.length),
                     ),
                   ),
           ],
@@ -179,9 +183,9 @@ class _StickyHeader extends SliverPersistentHeaderDelegate {
   final VoidCallback onSearchClear;
 
   @override
-  double get minExtent => 216;
+  double get minExtent => 226;
   @override
-  double get maxExtent => 216;
+  double get maxExtent => 226;
 
   @override
   bool shouldRebuild(_StickyHeader old) =>
@@ -192,19 +196,26 @@ class _StickyHeader extends SliverPersistentHeaderDelegate {
       old.search != search;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
       color: const Color(0xFFF2F2F7),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Products',
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF000000),
-                  letterSpacing: -0.4)),
+          const Text(
+            'Products',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF000000),
+              letterSpacing: -0.4,
+            ),
+          ),
           const SizedBox(height: 10),
 
           // ── Mini dashboard ──
@@ -221,19 +232,22 @@ class _StickyHeader extends SliverPersistentHeaderDelegate {
                 Row(
                   children: [
                     _MiniStat(
-                        label: 'Total Products',
-                        value: '$totalCount',
-                        color: const Color(0xFF007AFF)),
+                      label: 'Total Products',
+                      value: '$totalCount',
+                      color: const Color(0xFF007AFF),
+                    ),
                     _VertDivider(),
                     _MiniStat(
-                        label: 'Active',
-                        value: '$activeCount',
-                        color: const Color(0xFF34C759)),
+                      label: 'Active',
+                      value: '$activeCount',
+                      color: const Color(0xFF34C759),
+                    ),
                     _VertDivider(),
                     _MiniStat(
-                        label: 'Inactive',
-                        value: '${totalCount - activeCount}',
-                        color: const Color(0xFFFF3B30)),
+                      label: 'Inactive',
+                      value: '${totalCount - activeCount}',
+                      color: const Color(0xFFFF3B30),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -251,8 +265,10 @@ class _StickyHeader extends SliverPersistentHeaderDelegate {
                       ),
                     ),
                     Container(
-                        width: 0.5, height: 32,
-                        color: const Color(0xFFE5E5EA)),
+                      width: 0.5,
+                      height: 32,
+                      color: const Color(0xFFE5E5EA),
+                    ),
                     Expanded(
                       child: _StockItem(
                         label: 'Max Stock',
@@ -270,38 +286,69 @@ class _StickyHeader extends SliverPersistentHeaderDelegate {
 
           // ── Search ──
           Container(
-            height: 40,
+            height: 46,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE5E5EA)),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFD7DEE9), width: 1.2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 7,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.only(left: 18, right: 4),
             child: Row(
               children: [
-                const Icon(Icons.search, color: Color(0xFF8E8E93), size: 17),
-                const SizedBox(width: 8),
                 Expanded(
-                  child: TextField(
+                  child: CupertinoTextField.borderless(
                     controller: searchCtrl,
                     onChanged: onSearchChanged,
-                    decoration: const InputDecoration(
-                      hintText: 'Search products...',
-                      hintStyle:
-                          TextStyle(color: Color(0xFFC7C7CC), fontSize: 13),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
+                    placeholder: 'Search products...',
+                    padding: EdgeInsets.zero,
+                    cursorColor: const Color(0xFF4B46FF),
+                    placeholderStyle: const TextStyle(
+                      color: Color(0xFF6F7785),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
                     ),
-                    style: const TextStyle(fontSize: 13),
+                    style: const TextStyle(
+                      color: Color(0xFF111827),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 if (search.isNotEmpty)
                   GestureDetector(
                     onTap: onSearchClear,
-                    child: const Icon(Icons.close_rounded,
-                        color: Color(0xFFC7C7CC), size: 15),
+                    child: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFB8C0CC),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                    ),
                   ),
+                Container(
+                  width: 42,
+                  height: 42,
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    CupertinoIcons.search,
+                    color: Color(0xFF2F333A),
+                    size: 28,
+                  ),
+                ),
               ],
             ),
           ),
@@ -312,8 +359,11 @@ class _StickyHeader extends SliverPersistentHeaderDelegate {
 }
 
 class _MiniStat extends StatelessWidget {
-  const _MiniStat(
-      {required this.label, required this.value, required this.color});
+  const _MiniStat({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
   final String label;
   final String value;
   final Color color;
@@ -323,18 +373,24 @@ class _MiniStat extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text(value,
-              style: TextStyle(
-                  color: color,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.4)),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.4,
+            ),
+          ),
           const SizedBox(height: 2),
-          Text(label,
-              style: const TextStyle(
-                  color: Color(0xFF8E8E93),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF8E8E93),
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
@@ -369,7 +425,7 @@ class _StockItem extends StatelessWidget {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 14),
@@ -379,20 +435,24 @@ class _StockItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style: const TextStyle(
-                        color: Color(0xFF8E8E93),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500)),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Color(0xFF8E8E93),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 const SizedBox(height: 1),
                 Text(
                   product == null
                       ? '-'
                       : '${product!.name.length > 14 ? '${product!.name.substring(0, 14)}…' : product!.name} (${product!.stock})',
                   style: TextStyle(
-                      color: color,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700),
+                    color: color,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -430,7 +490,10 @@ class _ProductCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE5E5EA)),
         boxShadow: const [
           BoxShadow(
-              color: Color(0x08000000), blurRadius: 8, offset: Offset(0, 2)),
+            color: Color(0x08000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
@@ -440,40 +503,52 @@ class _ProductCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _ProductThumb(
-                  imageUrl: product.imageUrl,
-                  imageBase64: product.imageBase64),
+                imageUrl: product.imageUrl,
+                imageBase64: product.imageBase64,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(product.name,
-                        style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF000000))),
+                    Text(
+                      product.name,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF000000),
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(product.category,
-                        style: const TextStyle(
-                            color: Color(0xFF8E8E93), fontSize: 12.5)),
+                    Text(
+                      product.category,
+                      style: const TextStyle(
+                        color: Color(0xFF8E8E93),
+                        fontSize: 12.5,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
                       children: [
                         _InfoPill(
-                            icon: Icons.currency_rupee_rounded,
-                            text: product.price.toStringAsFixed(0)),
+                          icon: Icons.currency_rupee_rounded,
+                          text: product.price.toStringAsFixed(0),
+                        ),
                         _InfoPill(
-                            icon: Icons.inventory_2_outlined,
-                            text: 'Stock ${product.stock}'),
+                          icon: Icons.inventory_2_outlined,
+                          text: 'Stock ${product.stock}',
+                        ),
                         _InfoPill(
-                            icon: Icons.sell_outlined,
-                            text: 'Sold ${product.soldCount}'),
+                          icon: Icons.sell_outlined,
+                          text: 'Sold ${product.soldCount}',
+                        ),
                         _InfoPill(
-                            icon: Icons.star_outline_rounded,
-                            text:
-                                '${product.rating.toStringAsFixed(1)} (${product.reviewCount})'),
+                          icon: Icons.star_outline_rounded,
+                          text:
+                              '${product.rating.toStringAsFixed(1)} (${product.reviewCount})',
+                        ),
                       ],
                     ),
                   ],
@@ -484,11 +559,12 @@ class _ProductCard extends StatelessWidget {
           ),
           if (product.description.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text(product.description,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    color: Color(0xFF8E8E93), fontSize: 12.5)),
+            Text(
+              product.description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 12.5),
+            ),
           ],
           const SizedBox(height: 12),
           Row(
@@ -514,12 +590,16 @@ class _ProductCard extends StatelessWidget {
                           width: 14,
                           height: 14,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : Icon(
                           product.isActive
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
-                          size: 16),
+                          size: 16,
+                        ),
                   label: Text(product.isActive ? 'Deactivate' : 'Activate'),
                 ),
               ),
@@ -549,11 +629,14 @@ class _InfoPill extends StatelessWidget {
         children: [
           Icon(icon, size: 13, color: const Color(0xFF8E8E93)),
           const SizedBox(width: 4),
-          Text(text,
-              style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF3C3C43))),
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF3C3C43),
+            ),
+          ),
         ],
       ),
     );
@@ -570,19 +653,18 @@ class _StatusChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: isActive
-            ? const Color(0xFF34C759).withOpacity(0.12)
-            : const Color(0xFFFF3B30).withOpacity(0.12),
+            ? const Color(0xFF34C759).withValues(alpha: 0.12)
+            : const Color(0xFFFF3B30).withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         isActive ? 'ACTIVE' : 'INACTIVE',
         style: TextStyle(
-            color: isActive
-                ? const Color(0xFF34C759)
-                : const Color(0xFFFF3B30),
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.4),
+          color: isActive ? const Color(0xFF34C759) : const Color(0xFFFF3B30),
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.4,
+        ),
       ),
     );
   }
@@ -609,16 +691,22 @@ class _ProductThumb extends StatelessWidget {
                 try {
                   return Image.memory(base64Decode(b64), fit: BoxFit.cover);
                 } catch (_) {
-                  return const Icon(Icons.broken_image_outlined,
-                      color: Color(0xFF8E8E93));
+                  return const Icon(
+                    Icons.broken_image_outlined,
+                    color: Color(0xFF8E8E93),
+                  );
                 }
               })()
             : url.isNotEmpty
-                ? Image.network(url, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(
-                        Icons.broken_image_outlined,
-                        color: Color(0xFF8E8E93)))
-                : const Icon(Icons.image_outlined, color: Color(0xFF8E8E93)),
+            ? Image.network(
+                url,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.broken_image_outlined,
+                  color: Color(0xFF8E8E93),
+                ),
+              )
+            : const Icon(Icons.image_outlined, color: Color(0xFF8E8E93)),
       ),
     );
   }
@@ -643,19 +731,27 @@ class _EmptyProducts extends StatelessWidget {
                 color: const Color(0xFFE5E5EA),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(Icons.inventory_2_outlined,
-                  size: 32, color: Color(0xFF8E8E93)),
+              child: const Icon(
+                Icons.inventory_2_outlined,
+                size: 32,
+                color: Color(0xFF8E8E93),
+              ),
             ),
             const SizedBox(height: 12),
-            const Text('No products yet',
-                style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF000000))),
+            const Text(
+              'No products yet',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF000000),
+              ),
+            ),
             const SizedBox(height: 4),
-            const Text('Tap the + button to add your first product.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Color(0xFF8E8E93), fontSize: 13)),
+            const Text(
+              'Tap the + button to add your first product.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Color(0xFF8E8E93), fontSize: 13),
+            ),
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: onUploadTap,

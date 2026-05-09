@@ -154,7 +154,8 @@ class _AdminOrdersTabState extends State<AdminOrdersTab> {
           children: [
             Center(
               child: Container(
-                width: 36, height: 4,
+                width: 36,
+                height: 4,
                 decoration: BoxDecoration(
                   color: const Color(0xFFD1D1D6),
                   borderRadius: BorderRadius.circular(2),
@@ -177,7 +178,9 @@ class _AdminOrdersTabState extends State<AdminOrdersTab> {
               runSpacing: 8,
               children: _statuses.map((s) {
                 final selected = _filterStatus == s;
-                final color = s == 'all' ? const Color(0xFF007AFF) : adminStatusColor(s);
+                final color = s == 'all'
+                    ? const Color(0xFF007AFF)
+                    : adminStatusColor(s);
                 return GestureDetector(
                   onTap: () {
                     setState(() => _filterStatus = s);
@@ -185,7 +188,10 @@ class _AdminOrdersTabState extends State<AdminOrdersTab> {
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 9,
+                    ),
                     decoration: BoxDecoration(
                       color: selected ? color : Colors.white,
                       borderRadius: BorderRadius.circular(22),
@@ -194,14 +200,24 @@ class _AdminOrdersTabState extends State<AdminOrdersTab> {
                         width: selected ? 0 : 1,
                       ),
                       boxShadow: selected
-                          ? [BoxShadow(color: color.withOpacity(0.25), blurRadius: 6, offset: const Offset(0, 2))]
+                          ? [
+                              BoxShadow(
+                                color: color.withValues(alpha: 0.25),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
                           : [],
                     ),
                     child: Text(
                       s == 'all' ? 'All' : s[0].toUpperCase() + s.substring(1),
                       style: TextStyle(
-                        color: selected ? Colors.white : const Color(0xFF3C3C43),
-                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                        color: selected
+                            ? Colors.white
+                            : const Color(0xFF3C3C43),
+                        fontWeight: selected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
                         fontSize: 14,
                         letterSpacing: -0.2,
                       ),
@@ -240,7 +256,7 @@ class _OrdersHeader extends SliverPersistentHeaderDelegate {
   final VoidCallback onFilterTap;
   final VoidCallback onFilterClear;
 
-  double get _height => filterStatus != 'all' ? 278 : 250;
+  double get _height => filterStatus != 'all' ? 286 : 258;
 
   @override
   double get minExtent => _height;
@@ -282,7 +298,7 @@ class _OrdersHeader extends SliverPersistentHeaderDelegate {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -291,25 +307,60 @@ class _OrdersHeader extends SliverPersistentHeaderDelegate {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 4,
+                  ),
                   child: Row(
                     children: [
-                      AdminMiniStat(label: 'Total', value: '${counts['active']}', color: const Color(0xFF007AFF), fontSize: 20),
+                      AdminMiniStat(
+                        label: 'Total',
+                        value: '${counts['active']}',
+                        color: const Color(0xFF007AFF),
+                        fontSize: 20,
+                      ),
                       AdminVertDivider(height: 36),
-                      AdminMiniStat(label: 'Placed', value: '${counts['placed']}', color: const Color(0xFF5856D6), fontSize: 20),
+                      AdminMiniStat(
+                        label: 'Placed',
+                        value: '${counts['placed']}',
+                        color: const Color(0xFF5856D6),
+                        fontSize: 20,
+                      ),
                       AdminVertDivider(height: 36),
-                      AdminMiniStat(label: 'Processing', value: '${counts['processing']}', color: const Color(0xFFFF9500), fontSize: 20),
+                      AdminMiniStat(
+                        label: 'Processing',
+                        value: '${counts['processing']}',
+                        color: const Color(0xFFFF9500),
+                        fontSize: 20,
+                      ),
                     ],
                   ),
                 ),
-                Container(height: 0.5, color: const Color(0xFFE5E5EA), margin: const EdgeInsets.symmetric(horizontal: 16)),
+                Container(
+                  height: 0.5,
+                  color: const Color(0xFFE5E5EA),
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 4,
+                  ),
                   child: Row(
                     children: [
-                      AdminMiniStat(label: 'Packed', value: '${counts['packed']}', color: const Color(0xFFFF9500), fontSize: 20),
+                      AdminMiniStat(
+                        label: 'Packed',
+                        value: '${counts['packed']}',
+                        color: const Color(0xFFFF9500),
+                        fontSize: 20,
+                      ),
                       AdminVertDivider(height: 36),
-                      AdminMiniStat(label: 'Shipped', value: '${counts['shipped']}', color: const Color(0xFF34C759), fontSize: 20),
+                      AdminMiniStat(
+                        label: 'Shipped',
+                        value: '${counts['shipped']}',
+                        color: const Color(0xFF34C759),
+                        fontSize: 20,
+                      ),
                     ],
                   ),
                 ),
@@ -365,35 +416,72 @@ class _SearchFilterRow extends StatelessWidget {
           children: [
             Expanded(
               child: Container(
-                height: 38,
+                height: 46,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE9E9EB),
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: const Color(0xFFD7DEE9),
+                    width: 1.2,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x14000000),
+                      blurRadius: 7,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.only(left: 18, right: 4),
                 child: Row(
                   children: [
-                    const Icon(CupertinoIcons.search, color: Color(0xFF8E8E93), size: 16),
-                    const SizedBox(width: 6),
                     Expanded(
-                      child: TextField(
+                      child: CupertinoTextField.borderless(
                         controller: searchCtrl,
                         onChanged: onSearchChanged,
-                        decoration: InputDecoration(
-                          hintText: hintText,
-                          hintStyle: const TextStyle(color: Color(0xFF8E8E93), fontSize: 14),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
+                        placeholder: hintText,
+                        padding: EdgeInsets.zero,
+                        cursorColor: const Color(0xFF4B46FF),
+                        placeholderStyle: const TextStyle(
+                          color: Color(0xFF6F7785),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
                         ),
-                        style: const TextStyle(fontSize: 14, color: Color(0xFF000000)),
+                        style: const TextStyle(
+                          color: Color(0xFF111827),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     if (search.isNotEmpty)
                       GestureDetector(
                         onTap: onSearchClear,
-                        child: const Icon(CupertinoIcons.clear_circled_solid, color: Color(0xFFAEAEB2), size: 16),
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFB8C0CC),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.xmark,
+                            color: Colors.white,
+                            size: 12,
+                          ),
+                        ),
                       ),
+                    Container(
+                      width: 42,
+                      height: 42,
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        CupertinoIcons.search,
+                        color: Color(0xFF2F333A),
+                        size: 28,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -402,15 +490,26 @@ class _SearchFilterRow extends StatelessWidget {
             GestureDetector(
               onTap: onFilterTap,
               child: Container(
-                width: 38, height: 38,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
-                  color: filterStatus == 'all' ? const Color(0xFFE9E9EB) : const Color(0xFF007AFF),
-                  borderRadius: BorderRadius.circular(12),
+                  color: filterStatus == 'all'
+                      ? Colors.white
+                      : const Color(0xFF4B46FF),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: filterStatus == 'all'
+                        ? const Color(0xFFD7DEE9)
+                        : const Color(0xFF4B46FF),
+                    width: 1.2,
+                  ),
                 ),
                 child: Icon(
                   CupertinoIcons.slider_horizontal_3,
-                  size: 17,
-                  color: filterStatus == 'all' ? const Color(0xFF3C3C43) : Colors.white,
+                  size: 18,
+                  color: filterStatus == 'all'
+                      ? const Color(0xFF3C3C43)
+                      : Colors.white,
                 ),
               ),
             ),
@@ -421,9 +520,12 @@ class _SearchFilterRow extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: adminStatusColor(filterStatus).withOpacity(0.12),
+                  color: adminStatusColor(filterStatus).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -441,7 +543,11 @@ class _SearchFilterRow extends StatelessWidget {
                     const SizedBox(width: 5),
                     GestureDetector(
                       onTap: onFilterClear,
-                      child: Icon(CupertinoIcons.xmark_circle_fill, size: 13, color: adminStatusColor(filterStatus)),
+                      child: Icon(
+                        CupertinoIcons.xmark_circle_fill,
+                        size: 13,
+                        color: adminStatusColor(filterStatus),
+                      ),
                     ),
                   ],
                 ),
@@ -449,7 +555,11 @@ class _SearchFilterRow extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 '$filteredCount orders',
-                style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 12, letterSpacing: -0.2),
+                style: const TextStyle(
+                  color: Color(0xFF8E8E93),
+                  fontSize: 12,
+                  letterSpacing: -0.2,
+                ),
               ),
             ],
           ),

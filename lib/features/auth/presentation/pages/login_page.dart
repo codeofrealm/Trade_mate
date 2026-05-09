@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../app/app_routes.dart';
-import '../../../../app/ui/glass.dart';
 import '../../data/auth_service.dart';
 import '../../data/auth_user_store.dart';
 import '../validators/auth_validators.dart';
@@ -23,7 +22,6 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordFocusNode = FocusNode();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  bool _keepLoggedIn = true;
 
   @override
   void dispose() {
@@ -48,7 +46,6 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       _passwordController.clear();
 
-      // Auto-detect role from database
       final role = (AuthUserStore.role ?? 'user').toLowerCase();
       final isAdmin = role == 'admin';
 
@@ -60,7 +57,6 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
 
-      // Auto-route based on role
       Navigator.of(
         context,
       ).pushReplacementNamed(isAdmin ? AppRoutes.admin : AppRoutes.home);
@@ -104,202 +100,208 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Color(0xFFF7F9FC),
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) SystemNavigator.pop();
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('TradeMate'),
-          automaticallyImplyLeading: false,
-        ),
-        body: GlassBackground(
-          child: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: Center(
+        backgroundColor: const Color(0xFFF7F9FC),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.fromLTRB(22, 18, 22, 28),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 520),
-                  child: GlassContainer(
-                    borderRadius: 28,
-                    blurSigma: 26,
-                    backgroundAlpha: 0.18,
-                    padding: const EdgeInsets.all(24),
-                    child: Form(
-                      key: _formKey,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SizedBox(height: 10),
-                          Center(
-                            child: Container(
-                              width: 76,
-                              height: 76,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color(0xFF007AFF),
-                                    Color(0xFF5856D6),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(999),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x22000000),
-                                    blurRadius: 18,
-                                    offset: Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.storefront_outlined,
-                                color: Colors.white,
-                                size: 34,
-                              ),
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 46,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 430),
+                      child: Form(
+                        key: _formKey,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const _AuthBrandHeader(
+                              icon: Icons.storefront_outlined,
+                              title: 'Welcome back',
+                              subtitle:
+                                  'Sign in to manage products, orders, and your TradeMate workspace.',
                             ),
-                          ),
-                          const SizedBox(height: 18),
-                          Text(
-                            'Welcome Back',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.5,
-                                ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Sign in to continue',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: const Color(0xFF8E8E93),
-                                  fontSize: 14,
-                                ),
-                          ),
-                          const SizedBox(height: 28),
-                          AuthTextField(
-                            controller: _emailController,
-                            label: 'Email',
-                            keyboardType: TextInputType.emailAddress,
-                            validator: AuthValidators.validateEmail,
-                            prefixIcon: const Icon(Icons.mail_outline),
-                            focusNode: _emailFocusNode,
-                            textInputAction: TextInputAction.next,
-                            autofillHints: const [
-                              AutofillHints.username,
-                              AutofillHints.email,
-                            ],
-                            onFieldSubmitted: (_) =>
-                                _passwordFocusNode.requestFocus(),
-                          ),
-                          const SizedBox(height: 14),
-                          AuthTextField(
-                            controller: _passwordController,
-                            label: 'Password',
-                            obscureText: _obscurePassword,
-                            textInputAction: TextInputAction.done,
-                            validator: AuthValidators.validatePassword,
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            focusNode: _passwordFocusNode,
-                            autofillHints: const [AutofillHints.password],
-                            onFieldSubmitted: (_) => _submitLogin(),
-                            suffixIcon: IconButton(
-                              onPressed: _isLoading
-                                  ? null
-                                  : () => setState(
-                                      () =>
-                                          _obscurePassword = !_obscurePassword,
-                                    ),
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                              ),
+                            const SizedBox(height: 28),
+                            AuthTextField(
+                              controller: _emailController,
+                              label: 'Email',
+                              keyboardType: TextInputType.emailAddress,
+                              validator: AuthValidators.validateEmail,
+                              prefixIcon: const Icon(Icons.mail_outline),
+                              focusNode: _emailFocusNode,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [
+                                AutofillHints.username,
+                                AutofillHints.email,
+                              ],
+                              onFieldSubmitted: (_) =>
+                                  _passwordFocusNode.requestFocus(),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: _keepLoggedIn,
-                                onChanged: _isLoading
+                            const SizedBox(height: 14),
+                            AuthTextField(
+                              controller: _passwordController,
+                              label: 'Password',
+                              obscureText: _obscurePassword,
+                              textInputAction: TextInputAction.done,
+                              validator: AuthValidators.validatePassword,
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              focusNode: _passwordFocusNode,
+                              autofillHints: const [AutofillHints.password],
+                              onFieldSubmitted: (_) => _submitLogin(),
+                              suffixIcon: IconButton(
+                                onPressed: _isLoading
                                     ? null
-                                    : (v) => setState(
-                                        () => _keepLoggedIn = v ?? true,
+                                    : () => setState(
+                                        () => _obscurePassword =
+                                            !_obscurePassword,
                                       ),
-                              ),
-                              const Expanded(
-                                child: Text(
-                                  'Keep me logged in',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
-                                  ),
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: const Color(0xFF64748B),
                                 ),
                               ),
-                              TextButton(
+                            ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
                                 onPressed: _isLoading ? null : _forgotPassword,
-                                child: const Text('Forgot?'),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            height: 52,
-                            child: FilledButton(
-                              onPressed: _isLoading ? null : _submitLogin,
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Sign In',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          Center(
-                            child: TextButton(
-                              onPressed: _isLoading
-                                  ? null
-                                  : () {
-                                      FocusScope.of(context).unfocus();
-                                      Navigator.of(
-                                        context,
-                                      ).pushReplacementNamed(
-                                        AppRoutes.register,
-                                      );
-                                    },
-                              child: const Text(
-                                "Don't have an account? Register",
+                                child: const Text('Forgot password?'),
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              height: 52,
+                              child: FilledButton(
+                                onPressed: _isLoading ? null : _submitLogin,
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text('Sign in'),
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'New to TradeMate?',
+                                  style: TextStyle(color: Color(0xFF64748B)),
+                                ),
+                                TextButton(
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () {
+                                          FocusScope.of(context).unfocus();
+                                          Navigator.of(
+                                            context,
+                                          ).pushReplacementNamed(
+                                            AppRoutes.register,
+                                          );
+                                        },
+                                  child: const Text('Create account'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AuthBrandHeader extends StatelessWidget {
+  const _AuthBrandHeader({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: 76,
+          height: 76,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE8F2FF),
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Icon(icon, color: const Color(0xFF007AFF), size: 36),
+        ),
+        const SizedBox(height: 22),
+        const Text(
+          'TradeMate',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Color(0xFF0F172A),
+            fontSize: 32,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Color(0xFF172033),
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          subtitle,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Color(0xFF64748B),
+            fontSize: 15,
+            height: 1.45,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -23,7 +23,7 @@ class _StartPageState extends State<StartPage> {
   Future<String> _computeNextRoute() async {
     final isSignedIn = await AuthService.isSignedIn();
     if (!isSignedIn) {
-      return AppRoutes.login;
+      return AppRoutes.intro;
     }
 
     await AuthService.hydrateCurrentUserProfile();
@@ -63,4 +63,3 @@ class _StartPageState extends State<StartPage> {
     );
   }
 }
-

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:trade_mate/features/admin/utils/admin_customer_helpers.dart';
 
@@ -19,9 +20,9 @@ class AdminCustomersHeader extends SliverPersistentHeaderDelegate {
   final VoidCallback onSearchClear;
 
   @override
-  double get minExtent => 172;
+  double get minExtent => 180;
   @override
-  double get maxExtent => 172;
+  double get maxExtent => 180;
 
   @override
   bool shouldRebuild(AdminCustomersHeader old) =>
@@ -30,19 +31,26 @@ class AdminCustomersHeader extends SliverPersistentHeaderDelegate {
       old.search != search;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
       color: const Color(0xFFF2F2F7),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Customers',
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF000000),
-                  letterSpacing: -0.4)),
+          const Text(
+            'Customers',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF000000),
+              letterSpacing: -0.4,
+            ),
+          ),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
@@ -69,38 +77,69 @@ class AdminCustomersHeader extends SliverPersistentHeaderDelegate {
           ),
           const SizedBox(height: 10),
           Container(
-            height: 40,
+            height: 46,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE5E5EA)),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFD7DEE9), width: 1.2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 7,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.only(left: 18, right: 4),
             child: Row(
               children: [
-                const Icon(Icons.search, color: Color(0xFF8E8E93), size: 17),
-                const SizedBox(width: 8),
                 Expanded(
-                  child: TextField(
+                  child: CupertinoTextField.borderless(
                     controller: searchCtrl,
                     onChanged: onSearchChanged,
-                    decoration: const InputDecoration(
-                      hintText: 'Search by user ID...',
-                      hintStyle:
-                          TextStyle(color: Color(0xFFC7C7CC), fontSize: 13),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
+                    placeholder: 'Search by user ID...',
+                    padding: EdgeInsets.zero,
+                    cursorColor: const Color(0xFF4B46FF),
+                    placeholderStyle: const TextStyle(
+                      color: Color(0xFF6F7785),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
                     ),
-                    style: const TextStyle(fontSize: 13),
+                    style: const TextStyle(
+                      color: Color(0xFF111827),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 if (search.isNotEmpty)
                   GestureDetector(
                     onTap: onSearchClear,
-                    child: const Icon(Icons.close_rounded,
-                        color: Color(0xFFC7C7CC), size: 15),
+                    child: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFB8C0CC),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                    ),
                   ),
+                Container(
+                  width: 42,
+                  height: 42,
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    CupertinoIcons.search,
+                    color: Color(0xFF2F333A),
+                    size: 28,
+                  ),
+                ),
               ],
             ),
           ),
@@ -111,8 +150,11 @@ class AdminCustomersHeader extends SliverPersistentHeaderDelegate {
 }
 
 class _MiniStat extends StatelessWidget {
-  const _MiniStat(
-      {required this.label, required this.value, required this.color});
+  const _MiniStat({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
   final String label;
   final String value;
   final Color color;
@@ -123,18 +165,24 @@ class _MiniStat extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(value,
-              style: TextStyle(
-                  color: color,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.4)),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.4,
+            ),
+          ),
           const SizedBox(height: 2),
-          Text(label,
-              style: const TextStyle(
-                  color: Color(0xFF8E8E93),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF8E8E93),
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 class HomeFloatingNavBar extends StatelessWidget {
@@ -36,74 +38,111 @@ class HomeFloatingNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
-    return Container(
-      color: const Color(0xFFF2F2F7),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 6, 16, bottomPadding + 8),
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
-          height: 60,
+          height: 66 + bottomPadding,
+          padding: EdgeInsets.fromLTRB(12, 7, 12, bottomPadding + 6),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
+            color: Colors.white.withValues(alpha: 0.98),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+            border: const Border(
+              top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+            ),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x12000000),
-                blurRadius: 24,
-                offset: Offset(0, 4),
+                color: const Color(0xFF111827).withValues(alpha: 0.10),
+                blurRadius: 18,
+                offset: const Offset(0, -4),
               ),
             ],
-            border: Border.all(color: const Color(0xFFE5E5EA), width: 0.5),
           ),
           child: Row(
-            children: List.generate(_items.length, (i) {
-              final selected = currentIndex == i;
+            children: List.generate(_items.length, (index) {
+              final selected = currentIndex == index;
               return Expanded(
-                child: GestureDetector(
-                  onTap: () => onTap(i),
-                  behavior: HitTestBehavior.opaque,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? const Color(0xFF007AFF).withOpacity(0.1)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          selected ? _items[i].activeIcon : _items[i].icon,
-                          size: 22,
-                          color: selected
-                              ? const Color(0xFF007AFF)
-                              : const Color(0xFFAEAEB2),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 180),
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: selected
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                          color: selected
-                              ? const Color(0xFF007AFF)
-                              : const Color(0xFFAEAEB2),
-                          letterSpacing: -0.2,
-                        ),
-                        child: Text(_items[i].label),
-                      ),
-                    ],
-                  ),
+                child: _NavButton(
+                  item: _items[index],
+                  selected: selected,
+                  onTap: () => onTap(index),
                 ),
               );
             }),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavButton extends StatelessWidget {
+  const _NavButton({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _NavItem item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    const activeColor = Color(0xFF4B46FF);
+    const inactiveIconColor = Color(0xFF242832);
+    const inactiveTextColor = Color(0xFF8E8E93);
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: item.label,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            color: selected
+                ? activeColor.withValues(alpha: 0.08)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                selected ? item.activeIcon : item.icon,
+                size: selected ? 23 : 22,
+                color: selected ? activeColor : inactiveIconColor,
+              ),
+              const SizedBox(height: 3),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOutCubic,
+                style: TextStyle(
+                  color: selected ? activeColor : inactiveTextColor,
+                  fontSize: 10.5,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+                  height: 1,
+                  letterSpacing: 0,
+                ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    item.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.fade,
+                    softWrap: false,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

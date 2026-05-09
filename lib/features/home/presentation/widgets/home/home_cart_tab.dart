@@ -44,7 +44,9 @@ class _HomeCartTabState extends State<HomeCartTab> {
       Navigator.of(context).pushNamed(
         AppRoutes.orderSuccess,
         arguments: OrderSuccessPageArgs(
-          productName: items.length == 1 ? items.first.productName : 'Cart Items',
+          productName: items.length == 1
+              ? items.first.productName
+              : 'Cart Items',
           quantity: totalCount,
           totalAmount: totalAmount,
           orderId: firstOrderId,
@@ -54,9 +56,9 @@ class _HomeCartTabState extends State<HomeCartTab> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
     } finally {
       if (mounted) {
         setState(() => _isPlacingOrder = false);
@@ -111,20 +113,20 @@ class _HomeCartTabState extends State<HomeCartTab> {
                   children: [
                     Positioned.fill(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
+                        padding: const EdgeInsets.fromLTRB(12, 14, 12, 176),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
                               'Cart',
                               style: TextStyle(
-                                fontSize: 34,
+                                fontSize: 28,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF1A1D26),
                                 height: 1,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 4),
                             const Text(
                               'Your interested products and totals',
                               style: TextStyle(
@@ -133,14 +135,14 @@ class _HomeCartTabState extends State<HomeCartTab> {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 12),
                             _CartSummaryCard(
                               totalCount: totalCount,
                               totalAmount: totalAmount,
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
                             _AddressPreviewCard(address: address),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
                             if (items.isEmpty)
                               const _EmptyCard(
                                 message: 'No products added to cart yet.',
@@ -148,7 +150,7 @@ class _HomeCartTabState extends State<HomeCartTab> {
                             else
                               ...items.map(
                                 (item) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
+                                  padding: const EdgeInsets.only(bottom: 8),
                                   child: _CartItemCard(item: item),
                                 ),
                               ),
@@ -157,35 +159,36 @@ class _HomeCartTabState extends State<HomeCartTab> {
                       ),
                     ),
                     Positioned(
-                      left: 16,
-                      right: 16,
-                      bottom: 12,
-                      child: SafeArea(
-                        top: false,
-                        child: SizedBox(
-                          height: 52,
-                          child: ElevatedButton.icon(
-                            onPressed: canPlaceOrder
-                                ? () => _placeCartOrder(
-                                      items: items,
-                                      address: address,
-                                      totalAmount: totalAmount,
-                                      totalCount: totalCount,
-                                    )
-                                : null,
-                            icon: _isPlacingOrder
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Icon(Icons.shopping_bag_outlined),
-                            label: Text(
+                      left: 12,
+                      right: 12,
+                      bottom: MediaQuery.paddingOf(context).bottom + 92,
+                      child: SizedBox(
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          onPressed: canPlaceOrder
+                              ? () => _placeCartOrder(
+                                  items: items,
+                                  address: address,
+                                  totalAmount: totalAmount,
+                                  totalCount: totalCount,
+                                )
+                              : null,
+                          icon: _isPlacingOrder
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.shopping_bag_outlined),
+                          label: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
                               address.isComplete
                                   ? 'Place Order (Rs ${totalAmount.toStringAsFixed(2)})'
                                   : 'Complete address to order',
+                              maxLines: 1,
                             ),
                           ),
                         ),
@@ -212,10 +215,18 @@ class _CartSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFDCE3EE)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -225,13 +236,13 @@ class _CartSummaryCard extends StatelessWidget {
               children: [
                 const Text(
                   'Total Items',
-                  style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 12.5),
+                  style: TextStyle(color: Color(0xFF687386), fontSize: 12.5),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   '$totalCount',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF172033),
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
                   ),
@@ -245,13 +256,13 @@ class _CartSummaryCard extends StatelessWidget {
               children: [
                 const Text(
                   'Total Amount',
-                  style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 12.5),
+                  style: TextStyle(color: Color(0xFF687386), fontSize: 12.5),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'Rs ${totalAmount.toStringAsFixed(2)}',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF007AFF),
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                   ),
@@ -274,20 +285,20 @@ class _CartBaseLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 30),
+      padding: const EdgeInsets.fromLTRB(12, 14, 12, 112),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Cart',
             style: TextStyle(
-              fontSize: 34,
+              fontSize: 28,
               fontWeight: FontWeight.w800,
               color: Color(0xFF1A1D26),
               height: 1,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             subtitle,
             style: const TextStyle(
@@ -296,7 +307,7 @@ class _CartBaseLayout extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           child,
         ],
       ),
@@ -316,8 +327,8 @@ class _AddressPreviewCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFDCE3EE)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -400,8 +411,8 @@ class _CartItemCardState extends State<_CartItemCard> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFDCE3EE)),
       ),
       child: Row(
         children: [
@@ -477,7 +488,7 @@ class _CartImage extends StatelessWidget {
     final url = item.productImageUrl?.trim() ?? '';
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
         width: 52,
         height: 52,
@@ -533,11 +544,11 @@ class _EmptyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFDCE3EE)),
       ),
       child: Text(message, style: const TextStyle(color: Color(0xFF64748B))),
     );
