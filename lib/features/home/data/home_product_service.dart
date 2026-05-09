@@ -38,6 +38,118 @@ class HomeProductService {
         });
   }
 
+  Future<HomeReviewEligibility> checkReviewEligibility(String productId) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return const HomeReviewEligibility(
+        canReview: false,
+        message: 'Please login to write a review.',
+      );
+    }
+
+    final cleanProductId = productId.trim();
+    if (cleanProductId.isEmpty) {
+      return const HomeReviewEligibility(
+        canReview: false,
+        message: 'Product not available for review.',
+      );
+    }
+
+    final orders = await _firestore
+        .collection('orders')
+        .where('userId', isEqualTo: user.uid)
+        .get();
+
+    final hasDeliveredOrder = orders.docs.any((doc) {
+      final order = HomeUserOrder.fromFirestore(doc.id, doc.data());
+      return order.productId == cleanProductId && order.isDelivered;
+    });
+
+    if (!hasDeliveredOrder) {
+      return const HomeReviewEligibility(
+        canReview: false,
+        message: 'Review is available only after this product is delivered.',
+      );
+    }
+
+    final reviews = await _firestore
+        .collection('product_reviews')
+        .where('productId', isEqualTo: cleanProductId)
+        .get();
+
+    final alreadyReviewed = reviews.docs.any((doc) {
+      final data = doc.data();
+      return (data['userId'] ?? '').toString() == user.uid;
+    });
+
+    if (alreadyReviewed) {
+      return const HomeReviewEligibility(
+        canReview: false,
+        message: 'You have already reviewed this delivered product.',
+      );
+    }
+
+    return const HomeReviewEligibility(
+      canReview: true,
+      message: 'You can review this delivered product.',
+    );
+  }
+
+  Future<void> submitProductReview({
+    required AdminProduct product,
+    required int rating,
+    required String comment,
+    required String reviewerName,
+  }) async {
+    if (rating < 1 || rating > 5) {
+      throw const HomeProductException('Please select a star rating.');
+    }
+
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw const HomeProductException('Please login to write a review.');
+    }
+
+    final eligibility = await checkReviewEligibility(product.id);
+    if (!eligibility.canReview) {
+      throw HomeProductException(eligibility.message);
+    }
+
+    final productRef = _firestore.collection('products').doc(product.id);
+    final reviewRef = _firestore.collection('product_reviews').doc();
+
+    await _firestore.runTransaction((transaction) async {
+      final snap = await transaction.get(productRef);
+      if (!snap.exists) {
+        throw const HomeProductException('Product not found.');
+      }
+
+      final data = snap.data() ?? <String, dynamic>{};
+      final oldRating = _asDouble(data['rating']);
+      final oldCount = _asInt(data['reviewCount']);
+      final newCount = oldCount + 1;
+      final newRating = ((oldRating * oldCount) + rating) / newCount;
+
+      transaction.set(reviewRef, {
+        'productId': product.id,
+        'productName': product.name,
+        'userId': user.uid,
+        'reviewerName': reviewerName.trim().isEmpty
+            ? 'User'
+            : reviewerName.trim(),
+        'comment': comment.trim(),
+        'rating': rating.toDouble(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      transaction.update(productRef, {
+        'rating': newRating,
+        'reviewCount': newCount,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
   Stream<List<HomeCartItem>> streamCartItems() {
     final user = _auth.currentUser;
     if (user == null) {
@@ -265,7 +377,9 @@ class HomeProductService {
         final item = items[i];
         final quantity = item.quantity <= 0 ? 1 : item.quantity;
 
-        final productRef = _firestore.collection('products').doc(item.productId);
+        final productRef = _firestore
+            .collection('products')
+            .doc(item.productId);
         final cartRef = _firestore.collection('cart_items').doc(item.id);
         final orderRef = orderRefs[i];
 
@@ -330,6 +444,13 @@ class HomeProductService {
 class HomeProductException implements Exception {
   const HomeProductException(this.message);
 
+  final String message;
+}
+
+class HomeReviewEligibility {
+  const HomeReviewEligibility({required this.canReview, required this.message});
+
+  final bool canReview;
   final String message;
 }
 

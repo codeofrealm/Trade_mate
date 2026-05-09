@@ -1,7 +1,4 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../app/app_routes.dart';
 import '../../../data/home_product_service.dart';
@@ -14,16 +11,12 @@ import 'home_tab_scaffold.dart';
 class HomeOrdersTab extends StatefulWidget {
   const HomeOrdersTab({super.key});
 
-  static const _supportPhone = '+91 9159830802';
-
   @override
   State<HomeOrdersTab> createState() => _HomeOrdersTabState();
 }
 
 class _HomeOrdersTabState extends State<HomeOrdersTab> {
-  final Set<String> _deliveryNotifiedIds = {};
-  final Set<String> _cancelNotifiedIds = {};
-  final List<HomeNotifBanner> _banners = [];
+  _OrderFilter _filter = _OrderFilter.all;
 
   @override
   Widget build(BuildContext context) {
@@ -33,17 +26,18 @@ class _HomeOrdersTabState extends State<HomeOrdersTab> {
         if (snapshot.hasError) {
           return const HomeTabScaffold(
             title: 'My Orders',
-            subtitle: 'Track delivery updates and support actions',
+            subtitle: 'Track delivery updates and order status',
             child: _InfoCard(
               icon: Icons.error_outline_rounded,
               message: 'Unable to load your orders right now.',
             ),
           );
         }
+
         if (!snapshot.hasData) {
           return const HomeTabScaffold(
             title: 'My Orders',
-            subtitle: 'Track delivery updates and support actions',
+            subtitle: 'Track delivery updates and order status',
             child: _InfoCard(
               icon: Icons.local_shipping_outlined,
               message: 'Loading your order tracking details...',
@@ -53,66 +47,24 @@ class _HomeOrdersTabState extends State<HomeOrdersTab> {
         }
 
         final orders = snapshot.data!;
-        final activeCount =
-            orders.where((o) => !o.isDelivered && !o.isCancelled).length;
+        final activeCount = orders
+            .where((o) => !o.isDelivered && !o.isCancelled)
+            .length;
         final deliveredCount = orders.where((o) => o.isDelivered).length;
         final cancelledCount = orders.where((o) => o.isCancelled).length;
-
-        final newlyDelivered = orders
-            .where((o) => o.isDelivered && !_deliveryNotifiedIds.contains(o.id))
+        final activeOrders = orders
+            .where((o) => !o.isDelivered && !o.isCancelled)
             .toList();
-        final newlyCancelled = orders
-            .where((o) => o.isCancelled && !_cancelNotifiedIds.contains(o.id))
-            .toList();
-
-        if (newlyDelivered.isNotEmpty || newlyCancelled.isNotEmpty) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            setState(() {
-              for (final o in newlyDelivered) {
-                _deliveryNotifiedIds.add(o.id);
-                _banners.add(HomeNotifBanner(
-                  id: o.id,
-                  message:
-                      '✅  Order delivered: ${o.productName.isEmpty ? homeShortId(o.id) : o.productName}',
-                  color: const Color(0xFF34C759),
-                ));
-              }
-              for (final o in newlyCancelled) {
-                _cancelNotifiedIds.add(o.id);
-                _banners.add(HomeNotifBanner(
-                  id: o.id,
-                  message:
-                      '❌  Order cancelled: ${o.productName.isEmpty ? homeShortId(o.id) : o.productName}',
-                  color: const Color(0xFFFF3B30),
-                ));
-              }
-            });
-          });
-        }
-
-        final activeOrders = orders.where((o) => !o.isDelivered && !o.isCancelled).toList();
+        final filteredOrders = _filter.apply(orders);
 
         return HomeTabScaffold(
           title: 'My Orders',
-          subtitle: 'Track orders, call customer care, and send messages',
+          subtitle: 'Track order status and delivery progress',
           child: Column(
             children: [
-              // ── Active orders warning banner ──
               if (activeOrders.isNotEmpty) ...[
                 _ActiveOrdersWarningBanner(count: activeOrders.length),
                 const SizedBox(height: 8),
-              ],
-              if (_banners.isNotEmpty) ...[
-                ..._banners.map((b) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: HomeBannerCard(
-                        banner: b,
-                        onDismiss: () => setState(
-                            () => _banners.removeWhere((x) => x.id == b.id)),
-                      ),
-                    )),
-                const SizedBox(height: 4),
               ],
               HomeOrdersSummaryCard(
                 total: orders.length,
@@ -121,20 +73,29 @@ class _HomeOrdersTabState extends State<HomeOrdersTab> {
                 cancelled: cancelledCount,
               ),
               const SizedBox(height: 12),
+              _OrderFilterBar(
+                selected: _filter,
+                onChanged: (filter) => setState(() => _filter = filter),
+              ),
+              const SizedBox(height: 12),
               if (orders.isEmpty)
                 const _InfoCard(
                   icon: Icons.receipt_long_outlined,
-                  message: 'No orders yet. Place a product order to track it here.',
+                  message:
+                      'No orders yet. Place a product order to track it here.',
+                )
+              else if (filteredOrders.isEmpty)
+                _InfoCard(
+                  icon: Icons.filter_alt_off_outlined,
+                  message: 'No ${_filter.label.toLowerCase()} orders found.',
                 )
               else
-                ...orders.map(
+                ...filteredOrders.map(
                   (order) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: HomeOrderTrackingCard(
                       order: order,
                       onTrack: () => _openTrackSheet(context, order),
-                      onCall: () => _onCallSupport(context, order),
-                      onMessage: () => _onMessageSupport(context, order),
                       onProductTap: () => Navigator.of(context).pushNamed(
                         AppRoutes.productDetails,
                         arguments: ProductDetailsPageArgs(
@@ -152,40 +113,6 @@ class _HomeOrdersTabState extends State<HomeOrdersTab> {
     );
   }
 
-  void _onCallSupport(BuildContext context, HomeUserOrder order) {
-    final uri = Uri(scheme: 'tel', path: HomeOrdersTab._supportPhone);
-    unawaited(launchUrl(uri, mode: LaunchMode.externalApplication).then((ok) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          content: Text(ok
-              ? 'Opening customer care (${HomeOrdersTab._supportPhone}).'
-              : 'Unable to open dialer. Call ${HomeOrdersTab._supportPhone}.'),
-        ));
-    }));
-  }
-
-  void _onMessageSupport(BuildContext context, HomeUserOrder order) {
-    final uri = Uri(
-      scheme: 'sms',
-      path: HomeOrdersTab._supportPhone,
-      queryParameters: <String, String>{
-        'body': 'Hi, I need help with my order ${homeShortId(order.id)}.',
-      },
-    );
-    unawaited(launchUrl(uri, mode: LaunchMode.externalApplication).then((ok) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          content: Text(ok
-              ? 'Opening SMS for order ${homeShortId(order.id)}.'
-              : 'Unable to open SMS. Message ${HomeOrdersTab._supportPhone}.'),
-        ));
-    }));
-  }
-
   void _openTrackSheet(BuildContext context, HomeUserOrder order) {
     final steps = _buildTrackSteps(order);
     showModalBottomSheet<void>(
@@ -201,17 +128,19 @@ class _HomeOrdersTabState extends State<HomeOrdersTab> {
             Text(
               order.productName.isEmpty ? 'Order Tracking' : order.productName,
               style: const TextStyle(
-                  color: Color(0xFF0F172A),
-                  fontWeight: FontWeight.w800,
-                  fontSize: 17),
+                color: Color(0xFF0F172A),
+                fontWeight: FontWeight.w800,
+                fontSize: 17,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Ordered ${homeTimeAgo(order.createdAt)} • ${homeFullDate(order.createdAt)}',
+              'Ordered ${homeTimeAgo(order.createdAt)} - ${homeFullDate(order.createdAt)}',
               style: const TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 12.8,
-                  fontWeight: FontWeight.w600),
+                color: Color(0xFF64748B),
+                fontSize: 12.8,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 12),
             ...steps.map(
@@ -235,8 +164,7 @@ class _HomeOrdersTabState extends State<HomeOrdersTab> {
                         color: step.$2
                             ? const Color(0xFF166534)
                             : const Color(0xFF64748B),
-                        fontWeight:
-                            step.$2 ? FontWeight.w700 : FontWeight.w600,
+                        fontWeight: step.$2 ? FontWeight.w700 : FontWeight.w600,
                         fontSize: 13.2,
                       ),
                     ),
@@ -262,8 +190,90 @@ List<(String, bool)> _buildTrackSteps(HomeUserOrder order) {
   return values;
 }
 
+enum _OrderFilter {
+  all('All'),
+  active('Active'),
+  delivered('Delivered'),
+  cancelled('Cancelled');
+
+  const _OrderFilter(this.label);
+
+  final String label;
+
+  List<HomeUserOrder> apply(List<HomeUserOrder> orders) {
+    return switch (this) {
+      _OrderFilter.all => orders,
+      _OrderFilter.active =>
+        orders
+            .where((order) => !order.isDelivered && !order.isCancelled)
+            .toList(),
+      _OrderFilter.delivered =>
+        orders.where((order) => order.isDelivered).toList(),
+      _OrderFilter.cancelled =>
+        orders.where((order) => order.isCancelled).toList(),
+    };
+  }
+}
+
+class _OrderFilterBar extends StatelessWidget {
+  const _OrderFilterBar({required this.selected, required this.onChanged});
+
+  final _OrderFilter selected;
+  final ValueChanged<_OrderFilter> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: _OrderFilter.values.map((filter) {
+          final isSelected = filter == selected;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              selected: isSelected,
+              label: Text(filter.label),
+              onSelected: (_) => onChanged(filter),
+              showCheckmark: false,
+              avatar: Icon(
+                _filterIcon(filter),
+                size: 16,
+                color: isSelected ? Colors.white : const Color(0xFF64748B),
+              ),
+              selectedColor: const Color(0xFF007AFF),
+              backgroundColor: Colors.white,
+              side: BorderSide(
+                color: isSelected
+                    ? const Color(0xFF007AFF)
+                    : const Color(0xFFDCE3EE),
+              ),
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : const Color(0xFF172033),
+                fontWeight: FontWeight.w700,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  IconData _filterIcon(_OrderFilter filter) {
+    return switch (filter) {
+      _OrderFilter.all => Icons.list_alt_outlined,
+      _OrderFilter.active => Icons.local_shipping_outlined,
+      _OrderFilter.delivered => Icons.check_circle_outline,
+      _OrderFilter.cancelled => Icons.cancel_outlined,
+    };
+  }
+}
+
 class _ActiveOrdersWarningBanner extends StatelessWidget {
   const _ActiveOrdersWarningBanner({required this.count});
+
   final int count;
 
   @override
@@ -274,11 +284,17 @@ class _ActiveOrdersWarningBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFFFF3CD),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFFFCC00).withValues(alpha: 0.5)),
+        border: Border.all(
+          color: const Color(0xFFFFCC00).withValues(alpha: 0.5),
+        ),
       ),
       child: Row(
         children: [
-          const Icon(Icons.warning_amber_rounded, color: Color(0xFFFF9500), size: 20),
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: Color(0xFFFF9500),
+            size: 20,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -297,8 +313,12 @@ class _ActiveOrdersWarningBanner extends StatelessWidget {
 }
 
 class _InfoCard extends StatelessWidget {
-  const _InfoCard(
-      {required this.icon, required this.message, this.isLoading = false});
+  const _InfoCard({
+    required this.icon,
+    required this.message,
+    this.isLoading = false,
+  });
+
   final IconData icon;
   final String message;
   final bool isLoading;
@@ -317,18 +337,22 @@ class _InfoCard extends StatelessWidget {
         children: [
           if (isLoading)
             const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2))
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
           else
             Icon(icon, color: const Color(0xFF64748B), size: 20),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(message,
-                style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600)),
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),

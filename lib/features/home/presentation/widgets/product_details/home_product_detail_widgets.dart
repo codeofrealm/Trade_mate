@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../admin/data/models/admin_product.dart';
@@ -21,15 +20,20 @@ class HomeProductImage extends StatelessWidget {
     final url = product.imageUrl?.trim() ?? '';
     if (b64.isNotEmpty) {
       try {
-        return Image.memory(base64Decode(b64),
-            fit: BoxFit.cover, width: double.infinity);
+        return Image.memory(
+          base64Decode(b64),
+          fit: BoxFit.cover,
+          width: double.infinity,
+        );
       } catch (_) {}
     }
     if (url.isNotEmpty) {
-      return Image.network(url,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          errorBuilder: (_, __, ___) => const _ImgFallback());
+      return Image.network(
+        url,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        errorBuilder: (context, error, stackTrace) => const _ImgFallback(),
+      );
     }
     return const _ImgFallback();
   }
@@ -38,8 +42,9 @@ class HomeProductImage extends StatelessWidget {
 class _ImgFallback extends StatelessWidget {
   const _ImgFallback();
   @override
-  Widget build(BuildContext context) =>
-      const Center(child: Icon(Icons.photo_outlined, color: Color(0xFFC7C7CC), size: 48));
+  Widget build(BuildContext context) => const Center(
+    child: Icon(Icons.photo_outlined, color: Color(0xFFC7C7CC), size: 48),
+  );
 }
 
 // ── Pill ──────────────────────────────────────────────────────────────────────
@@ -54,15 +59,18 @@ class HomePill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(text,
-          style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w700,
-              fontSize: 11,
-              letterSpacing: 0.3)),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w700,
+          fontSize: 11,
+          letterSpacing: 0.3,
+        ),
+      ),
     );
   }
 }
@@ -94,11 +102,19 @@ class HomeQuantityControl extends StatelessWidget {
       ),
       child: Row(
         children: [
-          IconButton(onPressed: onMinus, icon: const Icon(Icons.remove, size: 17)),
+          IconButton(
+            onPressed: onMinus,
+            icon: const Icon(Icons.remove, size: 17),
+          ),
           Expanded(
             child: Center(
-              child: Text('$quantity',
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              child: Text(
+                '$quantity',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
             ),
           ),
           IconButton(onPressed: onPlus, icon: const Icon(Icons.add, size: 17)),
@@ -111,8 +127,11 @@ class HomeQuantityControl extends StatelessWidget {
 // ── Address status card ───────────────────────────────────────────────────────
 
 class HomeAddressStatusCard extends StatelessWidget {
-  const HomeAddressStatusCard(
-      {super.key, required this.address, this.onOpenProfile});
+  const HomeAddressStatusCard({
+    super.key,
+    required this.address,
+    this.onOpenProfile,
+  });
   final HomeUserAddress address;
   final VoidCallback? onOpenProfile;
 
@@ -125,7 +144,8 @@ class HomeAddressStatusCard extends StatelessWidget {
         color: ok ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-            color: ok ? const Color(0xFF86EFAC) : const Color(0xFFFCD34D)),
+          color: ok ? const Color(0xFF86EFAC) : const Color(0xFFFCD34D),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,8 +162,10 @@ class HomeAddressStatusCard extends StatelessWidget {
           ),
           if (ok) ...[
             const SizedBox(height: 2),
-            Text('${address.fullName}, ${address.line1}, ${address.city}',
-                style: const TextStyle(color: Color(0xFF475569), fontSize: 12.5)),
+            Text(
+              '${address.fullName}, ${address.line1}, ${address.city}',
+              style: const TextStyle(color: Color(0xFF475569), fontSize: 12.5),
+            ),
           ],
           if (!ok && onOpenProfile != null) ...[
             const SizedBox(height: 6),
@@ -187,17 +209,21 @@ class HomeReviewsList extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFFE5E5EA)),
             ),
-            child: const Text('No reviews yet. Be the first to review!',
-                style: TextStyle(color: Color(0xFF8E8E93), fontSize: 13.5)),
+            child: const Text(
+              'No reviews yet. Be the first to review!',
+              style: TextStyle(color: Color(0xFF8E8E93), fontSize: 13.5),
+            ),
           );
         }
         return Column(
           children: reviews
               .take(10)
-              .map((r) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _ReviewCard(review: r),
-                  ))
+              .map(
+                (r) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _ReviewCard(review: r),
+                ),
+              )
               .toList(),
         );
       },
@@ -227,9 +253,10 @@ class _ReviewCard extends StatelessWidget {
                 child: Text(
                   review.reviewerName.isEmpty ? 'User' : review.reviewerName,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF000000),
-                      fontSize: 14),
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF000000),
+                    fontSize: 14,
+                  ),
                 ),
               ),
               Row(
@@ -247,18 +274,26 @@ class _ReviewCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              Text(review.rating.toStringAsFixed(1),
-                  style: const TextStyle(
-                      color: Color(0xFF8E8E93),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600)),
+              Text(
+                review.rating.toStringAsFixed(1),
+                style: const TextStyle(
+                  color: Color(0xFF8E8E93),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
           if (review.comment.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text(review.comment,
-                style: const TextStyle(
-                    color: Color(0xFF3C3C43), fontSize: 13.5, height: 1.4)),
+            Text(
+              review.comment,
+              style: const TextStyle(
+                color: Color(0xFF3C3C43),
+                fontSize: 13.5,
+                height: 1.4,
+              ),
+            ),
           ],
         ],
       ),
@@ -280,6 +315,7 @@ class _HomeWriteReviewBoxState extends State<HomeWriteReviewBox> {
   int _stars = 0;
   final _commentCtrl = TextEditingController();
   bool _isSaving = false;
+  int _eligibilityReload = 0;
 
   @override
   void dispose() {
@@ -296,46 +332,31 @@ class _HomeWriteReviewBoxState extends State<HomeWriteReviewBox> {
     }
     setState(() => _isSaving = true);
     try {
-      final reviewerName =
-          AuthUserStore.username?.trim().isNotEmpty == true
-              ? AuthUserStore.username!.trim()
-              : 'User';
+      final reviewerName = AuthUserStore.username?.trim().isNotEmpty == true
+          ? AuthUserStore.username!.trim()
+          : 'User';
 
-      await FirebaseFirestore.instance.collection('product_reviews').add({
-        'productId': widget.product.id,
-        'productName': widget.product.name,
-        'reviewerName': reviewerName,
-        'comment': _commentCtrl.text.trim(),
-        'rating': _stars.toDouble(),
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      final ref = FirebaseFirestore.instance
-          .collection('products')
-          .doc(widget.product.id);
-      await FirebaseFirestore.instance.runTransaction((tx) async {
-        final snap = await tx.get(ref);
-        if (!snap.exists) return;
-        final data = snap.data()!;
-        final oldRating = (data['rating'] as num?)?.toDouble() ?? 0.0;
-        final oldCount = (data['reviewCount'] as num?)?.toInt() ?? 0;
-        final newCount = oldCount + 1;
-        final newRating = ((oldRating * oldCount) + _stars) / newCount;
-        tx.update(ref, {
-          'rating': newRating,
-          'reviewCount': newCount,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      });
+      await HomeProductService.instance.submitProductReview(
+        product: widget.product,
+        rating: _stars,
+        comment: _commentCtrl.text.trim(),
+        reviewerName: reviewerName,
+      );
 
       if (!mounted) return;
       setState(() {
         _stars = 0;
         _commentCtrl.clear();
+        _eligibilityReload++;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Review submitted. Thank you!')),
       );
+    } on HomeProductException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -348,79 +369,170 @@ class _HomeWriteReviewBoxState extends State<HomeWriteReviewBox> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E5EA)),
+    return FutureBuilder<HomeReviewEligibility>(
+      key: ValueKey('${widget.product.id}_$_eligibilityReload'),
+      future: HomeProductService.instance.checkReviewEligibility(
+        widget.product.id,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Write a Review',
-              style: TextStyle(
+      builder: (context, snapshot) {
+        final eligibility = snapshot.data;
+        final isLoading = snapshot.connectionState != ConnectionState.done;
+        final canReview = eligibility?.canReview == true;
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE5E5EA)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Write a Review',
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF000000),
-                  letterSpacing: -0.3)),
-          const SizedBox(height: 4),
-          const Text('Share your experience with this product',
-              style: TextStyle(color: Color(0xFF8E8E93), fontSize: 12.5)),
-          const SizedBox(height: 14),
-          Row(
-            children: List.generate(
-              5,
-              (i) => GestureDetector(
-                onTap: () => setState(() => _stars = i + 1),
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Icon(
-                    i < _stars ? Icons.star_rounded : Icons.star_outline_rounded,
-                    size: 36,
-                    color: i < _stars
-                        ? const Color(0xFFFF9500)
-                        : const Color(0xFFD1D1D6),
-                  ),
+                  letterSpacing: -0.3,
                 ),
               ),
-            ),
+              const SizedBox(height: 4),
+              Text(
+                canReview
+                    ? 'Share your experience with your delivered product'
+                    : (eligibility?.message ??
+                          'Checking review availability...'),
+                style: TextStyle(
+                  color: canReview
+                      ? const Color(0xFF8E8E93)
+                      : const Color(0xFFB45309),
+                  fontSize: 12.5,
+                  fontWeight: canReview ? FontWeight.w400 : FontWeight.w700,
+                ),
+              ),
+              if (!canReview) ...[
+                const SizedBox(height: 12),
+                _ReviewLockedMessage(isLoading: isLoading),
+              ] else ...[
+                const SizedBox(height: 14),
+                Row(
+                  children: List.generate(
+                    5,
+                    (i) => GestureDetector(
+                      onTap: () => setState(() => _stars = i + 1),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Icon(
+                          i < _stars
+                              ? Icons.star_rounded
+                              : Icons.star_outline_rounded,
+                          size: 36,
+                          color: i < _stars
+                              ? const Color(0xFFFF9500)
+                              : const Color(0xFFD1D1D6),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _commentCtrl,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'Write your comment (optional)...',
+                    filled: true,
+                    fillColor: const Color(0xFFF2F2F7),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF007AFF),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: FilledButton(
+                    onPressed: _isSaving ? null : _submit,
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Submit Review',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ],
           ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _commentCtrl,
-            maxLines: 3,
-            decoration: InputDecoration(
-              hintText: 'Write your comment (optional)...',
-              filled: true,
-              fillColor: const Color(0xFFF2F2F7),
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFE5E5EA))),
-              enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFE5E5EA))),
-              focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      const BorderSide(color: Color(0xFF007AFF), width: 1.5)),
+        );
+      },
+    );
+  }
+}
+
+class _ReviewLockedMessage extends StatelessWidget {
+  const _ReviewLockedMessage({required this.isLoading});
+
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFDE68A)),
+      ),
+      child: Row(
+        children: [
+          if (isLoading)
+            const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else
+            const Icon(
+              Icons.lock_outline_rounded,
+              color: Color(0xFFB45309),
+              size: 19,
             ),
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: FilledButton(
-              onPressed: _isSaving ? null : _submit,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
-                  : const Text('Submit Review',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 15)),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Text(
+              'Only delivered orders for this exact product can be reviewed.',
+              style: TextStyle(
+                color: Color(0xFF92400E),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
