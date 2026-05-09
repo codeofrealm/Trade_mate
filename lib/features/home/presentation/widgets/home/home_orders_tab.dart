@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../app/app_routes.dart';
-import '../../../data/home_product_service.dart';
 import '../../../data/models/home_user_order.dart';
 import '../../../utils/home_helpers.dart';
 import '../../pages/product_details_page.dart';
+import '../../viewmodels/home_orders_view_model.dart';
 import '../orders/home_order_tracking_widgets.dart';
 import 'home_tab_scaffold.dart';
 
@@ -16,105 +16,75 @@ class HomeOrdersTab extends StatefulWidget {
 }
 
 class _HomeOrdersTabState extends State<HomeOrdersTab> {
-  _OrderFilter _filter = _OrderFilter.all;
+  late final HomeOrdersViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = HomeOrdersViewModel();
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<HomeUserOrder>>(
-      stream: HomeProductService.instance.streamMyOrders(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return const HomeTabScaffold(
-            title: 'My Orders',
-            subtitle: 'Track delivery updates and order status',
-            child: _InfoCard(
-              icon: Icons.error_outline_rounded,
-              message: 'Unable to load your orders right now.',
-            ),
-          );
-        }
+    return AnimatedBuilder(
+      animation: _viewModel,
+      builder: (context, _) {
+        return StreamBuilder<List<HomeUserOrder>>(
+          stream: _viewModel.ordersStream,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return const HomeTabScaffold(
+                title: 'My Orders',
+                subtitle: 'Track delivery updates and order status',
+                child: _InfoCard(
+                  icon: Icons.error_outline_rounded,
+                  message: 'Unable to load your orders right now.',
+                ),
+              );
+            }
 
-        if (!snapshot.hasData) {
-          return const HomeTabScaffold(
-            title: 'My Orders',
-            subtitle: 'Track delivery updates and order status',
-            child: _InfoCard(
-              icon: Icons.local_shipping_outlined,
-              message: 'Loading your order tracking details...',
-              isLoading: true,
-            ),
-          );
-        }
+            if (!snapshot.hasData) {
+              return const HomeTabScaffold(
+                title: 'My Orders',
+                subtitle: 'Track delivery updates and order status',
+                child: _InfoCard(
+                  icon: Icons.local_shipping_outlined,
+                  message: 'Loading your order tracking details...',
+                  isLoading: true,
+                ),
+              );
+            }
 
-        final orders = snapshot.data!;
-        final activeCount = orders
-            .where((o) => !o.isDelivered && !o.isCancelled)
-            .length;
-        final deliveredCount = orders.where((o) => o.isDelivered).length;
-        final cancelledCount = orders.where((o) => o.isCancelled).length;
-        final activeOrders = orders
-            .where((o) => !o.isDelivered && !o.isCancelled)
-            .toList();
-        final filteredOrders = _filter.apply(orders);
-
-        return HomeTabScaffold(
-          title: 'My Orders',
-          subtitle: 'Track order status and delivery progress',
-          child: Column(
-            children: [
-              if (activeOrders.isNotEmpty) ...[
-                _ActiveOrdersWarningBanner(count: activeOrders.length),
-                const SizedBox(height: 8),
-              ],
-              HomeOrdersSummaryCard(
-                total: orders.length,
-                active: activeCount,
-                delivered: deliveredCount,
-                cancelled: cancelledCount,
-              ),
-              const SizedBox(height: 12),
-              _OrderFilterBar(
-                selected: _filter,
-                onChanged: (filter) => setState(() => _filter = filter),
-              ),
-              const SizedBox(height: 12),
-              if (orders.isEmpty)
-                const _InfoCard(
-                  icon: Icons.receipt_long_outlined,
-                  message:
-                      'No orders yet. Place a product order to track it here.',
-                )
-              else if (filteredOrders.isEmpty)
-                _InfoCard(
-                  icon: Icons.filter_alt_off_outlined,
-                  message: 'No ${_filter.label.toLowerCase()} orders found.',
-                )
-              else
-                ...filteredOrders.map(
-                  (order) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: HomeOrderTrackingCard(
-                      order: order,
-                      onTrack: () => _openTrackSheet(context, order),
-                      onProductTap: () => Navigator.of(context).pushNamed(
-                        AppRoutes.productDetails,
-                        arguments: ProductDetailsPageArgs(
-                          productId: order.productId,
-                          productName: order.productName,
-                        ),
-                      ),
-                    ),
+            return HomeTabScaffold(
+              title: 'My Orders',
+              subtitle: 'Track order status and delivery progress',
+              child: _OrdersContent(
+                state: _viewModel.buildState(snapshot.data!),
+                onFilterChanged: _viewModel.setFilter,
+                onTrack: (order) => _openTrackSheet(context, order),
+                onProductTap: (order) => Navigator.of(context).pushNamed(
+                  AppRoutes.productDetails,
+                  arguments: ProductDetailsPageArgs(
+                    productId: order.productId,
+                    productName: order.productName,
                   ),
                 ),
-            ],
-          ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
   void _openTrackSheet(BuildContext context, HomeUserOrder order) {
-    final steps = _buildTrackSteps(order);
+    final steps = _viewModel.buildTrackSteps(order);
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -179,54 +149,78 @@ class _HomeOrdersTabState extends State<HomeOrdersTab> {
   }
 }
 
-List<(String, bool)> _buildTrackSteps(HomeUserOrder order) {
-  const steps = ['Order Placed', 'Packed', 'Shipped', 'Delivered'];
-  final safeStep = order.progressStepIndex.clamp(0, steps.length - 1);
-  final values = <(String, bool)>[];
-  for (var i = 0; i < steps.length; i++) {
-    values.add((steps[i], !order.isCancelled && i <= safeStep));
-  }
-  if (order.isCancelled) values.add(('Cancelled', true));
-  return values;
-}
+class _OrdersContent extends StatelessWidget {
+  const _OrdersContent({
+    required this.state,
+    required this.onFilterChanged,
+    required this.onTrack,
+    required this.onProductTap,
+  });
 
-enum _OrderFilter {
-  all('All'),
-  active('Active'),
-  delivered('Delivered'),
-  cancelled('Cancelled');
+  final HomeOrdersState state;
+  final ValueChanged<HomeOrderFilter> onFilterChanged;
+  final ValueChanged<HomeUserOrder> onTrack;
+  final ValueChanged<HomeUserOrder> onProductTap;
 
-  const _OrderFilter(this.label);
-
-  final String label;
-
-  List<HomeUserOrder> apply(List<HomeUserOrder> orders) {
-    return switch (this) {
-      _OrderFilter.all => orders,
-      _OrderFilter.active =>
-        orders
-            .where((order) => !order.isDelivered && !order.isCancelled)
-            .toList(),
-      _OrderFilter.delivered =>
-        orders.where((order) => order.isDelivered).toList(),
-      _OrderFilter.cancelled =>
-        orders.where((order) => order.isCancelled).toList(),
-    };
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (state.activeOrders.isNotEmpty) ...[
+          _ActiveOrdersWarningBanner(count: state.activeOrders.length),
+          const SizedBox(height: 8),
+        ],
+        HomeOrdersSummaryCard(
+          total: state.totalCount,
+          active: state.activeCount,
+          delivered: state.deliveredCount,
+          cancelled: state.cancelledCount,
+        ),
+        const SizedBox(height: 12),
+        _OrderFilterBar(
+          selected: state.selectedFilter,
+          onChanged: onFilterChanged,
+        ),
+        const SizedBox(height: 12),
+        if (state.orders.isEmpty)
+          const _InfoCard(
+            icon: Icons.receipt_long_outlined,
+            message: 'No orders yet. Place a product order to track it here.',
+          )
+        else if (state.filteredOrders.isEmpty)
+          _InfoCard(
+            icon: Icons.filter_alt_off_outlined,
+            message:
+                'No ${state.selectedFilter.label.toLowerCase()} orders found.',
+          )
+        else
+          ...state.filteredOrders.map(
+            (order) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: HomeOrderTrackingCard(
+                order: order,
+                onTrack: () => onTrack(order),
+                onProductTap: () => onProductTap(order),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
 
 class _OrderFilterBar extends StatelessWidget {
   const _OrderFilterBar({required this.selected, required this.onChanged});
 
-  final _OrderFilter selected;
-  final ValueChanged<_OrderFilter> onChanged;
+  final HomeOrderFilter selected;
+  final ValueChanged<HomeOrderFilter> onChanged;
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: _OrderFilter.values.map((filter) {
+        children: HomeOrderFilter.values.map((filter) {
           final isSelected = filter == selected;
           return Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -261,12 +255,12 @@ class _OrderFilterBar extends StatelessWidget {
     );
   }
 
-  IconData _filterIcon(_OrderFilter filter) {
+  IconData _filterIcon(HomeOrderFilter filter) {
     return switch (filter) {
-      _OrderFilter.all => Icons.list_alt_outlined,
-      _OrderFilter.active => Icons.local_shipping_outlined,
-      _OrderFilter.delivered => Icons.check_circle_outline,
-      _OrderFilter.cancelled => Icons.cancel_outlined,
+      HomeOrderFilter.all => Icons.list_alt_outlined,
+      HomeOrderFilter.active => Icons.local_shipping_outlined,
+      HomeOrderFilter.delivered => Icons.check_circle_outline,
+      HomeOrderFilter.cancelled => Icons.cancel_outlined,
     };
   }
 }
