@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../admin/data/models/admin_product.dart';
-import '../../admin/data/models/admin_product_review.dart';
 import '../../admin/data/services/admin_catalog_service.dart';
 import 'models/home_cart_item.dart';
 import 'models/home_user_address.dart';
@@ -18,136 +17,6 @@ class HomeProductService {
 
   Stream<List<AdminProduct>> streamVisibleProducts() {
     return AdminCatalogService.instance.streamActiveProducts();
-  }
-
-  Stream<List<AdminProductReview>> streamProductReviews(String productId) {
-    return _firestore
-        .collection('product_reviews')
-        .where('productId', isEqualTo: productId)
-        .snapshots()
-        .map((snapshot) {
-          final reviews = snapshot.docs
-              .map(
-                (doc) => AdminProductReview.fromFirestore(doc.id, doc.data()),
-              )
-              .toList();
-          reviews.sort(
-            (a, b) => _sortDate(b.createdAt).compareTo(_sortDate(a.createdAt)),
-          );
-          return reviews;
-        });
-  }
-
-  Future<HomeReviewEligibility> checkReviewEligibility(String productId) async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      return const HomeReviewEligibility(
-        canReview: false,
-        message: 'Please login to write a review.',
-      );
-    }
-
-    final cleanProductId = productId.trim();
-    if (cleanProductId.isEmpty) {
-      return const HomeReviewEligibility(
-        canReview: false,
-        message: 'Product not available for review.',
-      );
-    }
-
-    final orders = await _firestore
-        .collection('orders')
-        .where('userId', isEqualTo: user.uid)
-        .get();
-
-    final hasDeliveredOrder = orders.docs.any((doc) {
-      final order = HomeUserOrder.fromFirestore(doc.id, doc.data());
-      return order.productId == cleanProductId && order.isDelivered;
-    });
-
-    if (!hasDeliveredOrder) {
-      return const HomeReviewEligibility(
-        canReview: false,
-        message: 'Review is available only after this product is delivered.',
-      );
-    }
-
-    final reviews = await _firestore
-        .collection('product_reviews')
-        .where('productId', isEqualTo: cleanProductId)
-        .get();
-
-    final alreadyReviewed = reviews.docs.any((doc) {
-      final data = doc.data();
-      return (data['userId'] ?? '').toString() == user.uid;
-    });
-
-    if (alreadyReviewed) {
-      return const HomeReviewEligibility(
-        canReview: false,
-        message: 'You have already reviewed this delivered product.',
-      );
-    }
-
-    return const HomeReviewEligibility(
-      canReview: true,
-      message: 'You can review this delivered product.',
-    );
-  }
-
-  Future<void> submitProductReview({
-    required AdminProduct product,
-    required int rating,
-    required String comment,
-    required String reviewerName,
-  }) async {
-    if (rating < 1 || rating > 5) {
-      throw const HomeProductException('Please select a star rating.');
-    }
-
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw const HomeProductException('Please login to write a review.');
-    }
-
-    final eligibility = await checkReviewEligibility(product.id);
-    if (!eligibility.canReview) {
-      throw HomeProductException(eligibility.message);
-    }
-
-    final productRef = _firestore.collection('products').doc(product.id);
-    final reviewRef = _firestore.collection('product_reviews').doc();
-
-    await _firestore.runTransaction((transaction) async {
-      final snap = await transaction.get(productRef);
-      if (!snap.exists) {
-        throw const HomeProductException('Product not found.');
-      }
-
-      final data = snap.data() ?? <String, dynamic>{};
-      final oldRating = _asDouble(data['rating']);
-      final oldCount = _asInt(data['reviewCount']);
-      final newCount = oldCount + 1;
-      final newRating = ((oldRating * oldCount) + rating) / newCount;
-
-      transaction.set(reviewRef, {
-        'productId': product.id,
-        'productName': product.name,
-        'userId': user.uid,
-        'reviewerName': reviewerName.trim().isEmpty
-            ? 'User'
-            : reviewerName.trim(),
-        'comment': comment.trim(),
-        'rating': rating.toDouble(),
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      transaction.update(productRef, {
-        'rating': newRating,
-        'reviewCount': newCount,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    });
   }
 
   Stream<List<HomeCartItem>> streamCartItems() {
@@ -219,6 +88,7 @@ class HomeProductService {
       'productName': product.name,
       'productCategory': product.category,
       'productPrice': product.price,
+      'productCostPrice': product.costPrice,
       'productImageUrl': product.imageUrl ?? '',
       'productImageBase64': product.imageBase64 ?? '',
       'quantity': FieldValue.increment(quantity),
@@ -309,6 +179,13 @@ class HomeProductService {
       final stock = _asInt(data['stock']);
       final soldCount = _asInt(data['soldCount']);
       final price = _asDouble(data['price']);
+      final costPrice = _firstDouble(data, const [
+        'costPrice',
+        'buyPrice',
+        'purchasePrice',
+        'basePrice',
+      ]);
+      final margin = (price - costPrice) * quantity;
 
       if (!isActive) {
         throw const HomeProductException('This product is not active now.');
@@ -324,8 +201,11 @@ class HomeProductService {
         'productName': data['name'] ?? product.name,
         'productCategory': data['category'] ?? product.category,
         'productPrice': price,
+        'productCostPrice': costPrice,
         'quantity': quantity,
         'totalAmount': price * quantity,
+        'profitAmount': margin > 0 ? margin : 0,
+        'lossAmount': margin < 0 ? -margin : 0,
         'status': 'placed',
         'address': address.toMap(),
         'createdAt': FieldValue.serverTimestamp(),
@@ -395,6 +275,13 @@ class HomeProductService {
         final stock = _asInt(data['stock']);
         final soldCount = _asInt(data['soldCount']);
         final price = _asDouble(data['price']);
+        final costPrice = _firstDouble(data, const [
+          'costPrice',
+          'buyPrice',
+          'purchasePrice',
+          'basePrice',
+        ]);
+        final margin = (price - costPrice) * quantity;
 
         if (!isActive) {
           throw HomeProductException('${item.productName} is not active now.');
@@ -412,8 +299,11 @@ class HomeProductService {
           'productName': data['name'] ?? item.productName,
           'productCategory': data['category'] ?? item.productCategory,
           'productPrice': price,
+          'productCostPrice': costPrice,
           'quantity': quantity,
           'totalAmount': price * quantity,
+          'profitAmount': margin > 0 ? margin : 0,
+          'lossAmount': margin < 0 ? -margin : 0,
           'status': 'placed',
           'address': address.toMap(),
           'createdAt': FieldValue.serverTimestamp(),
@@ -447,13 +337,6 @@ class HomeProductException implements Exception {
   final String message;
 }
 
-class HomeReviewEligibility {
-  const HomeReviewEligibility({required this.canReview, required this.message});
-
-  final bool canReview;
-  final String message;
-}
-
 int _asInt(dynamic value) {
   if (value is int) {
     return value;
@@ -472,4 +355,16 @@ double _asDouble(dynamic value) {
     return value.toDouble();
   }
   return double.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+double _firstDouble(Map<String, dynamic> data, List<String> keys) {
+  for (final key in keys) {
+    if (data.containsKey(key)) {
+      final value = _asDouble(data[key]);
+      if (value > 0) {
+        return value;
+      }
+    }
+  }
+  return 0;
 }

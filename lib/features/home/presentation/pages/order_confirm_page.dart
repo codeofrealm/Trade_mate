@@ -96,6 +96,7 @@ class _OrderConfirmPageState extends State<OrderConfirmPage> {
         description: '',
         category: '',
         price: 0,
+        costPrice: 0,
         stock: 0,
         soldCount: 0,
         reviewCount: 0,

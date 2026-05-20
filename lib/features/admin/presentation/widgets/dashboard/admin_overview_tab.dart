@@ -21,22 +21,21 @@ class AdminOverviewTab extends StatelessWidget {
             final products = productSnap.data ?? [];
             final orders = orderSnap.data ?? [];
             final now = DateTime.now();
+            final productCostById = {
+              for (final product in products) product.id: product.costPrice,
+            };
+            final financeTotals = _calculateFinanceTotals(
+              orders: orders,
+              productCostById: productCostById,
+            );
 
             final lowStock =
                 products.where((p) => p.isActive && p.stock <= 5).toList()
                   ..sort((a, b) => a.stock.compareTo(b.stock));
 
-            final totalOrderAmount = orders
-                .where((o) => !o.isCancelled)
-                .fold(0.0, (s, o) => s + o.totalAmount);
-
-            final deliveredAmount = orders
-                .where((o) => o.isDelivered)
-                .fold(0.0, (s, o) => s + o.totalAmount);
-
             double _periodAmount(bool Function(AdminUserOrder) test) => orders
                 .where((o) => !o.isCancelled && test(o))
-                .fold(0.0, (s, o) => s + o.totalAmount);
+                .fold(0.0, (s, o) => s + _orderTotal(o));
 
             final weekStart = now.subtract(Duration(days: now.weekday - 1));
 
@@ -55,7 +54,7 @@ class AdminOverviewTab extends StatelessWidget {
                         o.createdAt!.month == day.month &&
                         o.createdAt!.day == day.day,
                   )
-                  .fold(0.0, (s, o) => s + o.totalAmount);
+                  .fold(0.0, (s, o) => s + _orderTotal(o));
             }
             for (var i = 29; i >= 0; i--) {
               final day = now.subtract(Duration(days: i));
@@ -68,13 +67,13 @@ class AdminOverviewTab extends StatelessWidget {
                         o.createdAt!.month == day.month &&
                         o.createdAt!.day == day.day,
                   )
-                  .fold(0.0, (s, o) => s + o.totalAmount);
+                  .fold(0.0, (s, o) => s + _orderTotal(o));
             }
             for (final o in orders) {
               if (o.isCancelled || o.createdAt == null) continue;
               if (o.createdAt!.year != now.year) continue;
               monthlyMap[o.createdAt!.month] =
-                  (monthlyMap[o.createdAt!.month] ?? 0) + o.totalAmount;
+                  (monthlyMap[o.createdAt!.month] ?? 0) + _orderTotal(o);
             }
 
             return ListView(
@@ -99,8 +98,10 @@ class AdminOverviewTab extends StatelessWidget {
                         s != 'cancelled' &&
                         s != 'canceled';
                   }).length,
-                  deliveredAmount: deliveredAmount,
-                  totalOrderAmount: totalOrderAmount,
+                  deliveredAmount: financeTotals.deliveredAmount,
+                  totalOrderAmount: financeTotals.totalAmount,
+                  totalProfit: financeTotals.totalProfit,
+                  totalLoss: financeTotals.totalLoss,
                 ),
                 const SizedBox(height: 20),
                 const _SectionTitle(text: 'Revenue Summary'),
@@ -215,4 +216,80 @@ class _SectionTitle extends StatelessWidget {
       letterSpacing: -0.3,
     ),
   );
+}
+
+class _FinanceTotals {
+  const _FinanceTotals({
+    required this.totalAmount,
+    required this.deliveredAmount,
+    required this.totalProfit,
+    required this.totalLoss,
+  });
+
+  final double totalAmount;
+  final double deliveredAmount;
+  final double totalProfit;
+  final double totalLoss;
+}
+
+_FinanceTotals _calculateFinanceTotals({
+  required List<AdminUserOrder> orders,
+  required Map<String, double> productCostById,
+}) {
+  double totalAmount = 0;
+  double deliveredAmount = 0;
+  double totalProfit = 0;
+  double totalLoss = 0;
+
+  for (final order in orders) {
+    if (order.isCancelled) {
+      continue;
+    }
+
+    final orderTotal = _orderTotal(order);
+    totalAmount += orderTotal;
+    if (order.isDelivered) {
+      deliveredAmount += orderTotal;
+    }
+
+    if (order.profitAmount > 0 || order.lossAmount > 0) {
+      totalProfit += order.profitAmount;
+      totalLoss += order.lossAmount;
+      continue;
+    }
+
+    final costPrice = order.productCostPrice > 0
+        ? order.productCostPrice
+        : productCostById[order.productId] ?? 0;
+    if (costPrice <= 0 || order.quantity <= 0) {
+      continue;
+    }
+
+    final salePrice = order.productPrice > 0
+        ? order.productPrice
+        : orderTotal / order.quantity;
+    final margin = (salePrice - costPrice) * order.quantity;
+    if (margin >= 0) {
+      totalProfit += margin;
+    } else {
+      totalLoss += -margin;
+    }
+  }
+
+  return _FinanceTotals(
+    totalAmount: totalAmount,
+    deliveredAmount: deliveredAmount,
+    totalProfit: totalProfit,
+    totalLoss: totalLoss,
+  );
+}
+
+double _orderTotal(AdminUserOrder order) {
+  if (order.totalAmount > 0) {
+    return order.totalAmount;
+  }
+  if (order.quantity <= 0) {
+    return 0;
+  }
+  return order.productPrice * order.quantity;
 }

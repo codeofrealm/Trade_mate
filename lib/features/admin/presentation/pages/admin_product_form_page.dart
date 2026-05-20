@@ -26,6 +26,7 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
   final _categoryController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
+  final _costPriceController = TextEditingController();
   final _stockController = TextEditingController();
   final _soldCountController = TextEditingController();
   final _reviewCountController = TextEditingController();
@@ -56,6 +57,9 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
       _categoryController.text = args.product!.category;
       _descriptionController.text = args.product!.description;
       _priceController.text = args.product!.price.toStringAsFixed(2);
+      _costPriceController.text = args.product!.costPrice > 0
+          ? args.product!.costPrice.toStringAsFixed(2)
+          : '';
       _stockController.text = args.product!.stock.toString();
       _soldCountController.text = args.product!.soldCount.toString();
       _reviewCountController.text = args.product!.reviewCount.toString();
@@ -78,6 +82,7 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
     _categoryController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
+    _costPriceController.dispose();
     _stockController.dispose();
     _soldCountController.dispose();
     _reviewCountController.dispose();
@@ -92,6 +97,7 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
     }
 
     final price = double.parse(_priceController.text.trim());
+    final costPrice = double.tryParse(_costPriceController.text.trim()) ?? 0;
     final stock = int.parse(_stockController.text.trim());
     final sold = int.parse(_soldCountController.text.trim());
     final reviews = int.parse(_reviewCountController.text.trim());
@@ -104,6 +110,7 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
       description: _descriptionController.text.trim(),
       category: _categoryController.text.trim(),
       price: price,
+      costPrice: costPrice,
       stock: stock,
       soldCount: sold,
       reviewCount: reviews,
@@ -334,7 +341,7 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
                   Expanded(
                     child: AdminFormField(
                       controller: _priceController,
-                      label: 'Price (Rs)',
+                      label: 'Sale Price (Rs)',
                       icon: Icons.currency_rupee_rounded,
                       keyboard: const TextInputType.numberWithOptions(
                         decimal: true,
@@ -346,6 +353,23 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: AdminFormField(
+                      controller: _costPriceController,
+                      label: 'Cost Price',
+                      icon: Icons.price_change_outlined,
+                      keyboard: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      action: TextInputAction.next,
+                      validator: _validateOptionalNonNegativeDouble,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: AdminFormField(
                       controller: _stockController,
                       label: 'Stock',
                       icon: Icons.warehouse_outlined,
@@ -354,16 +378,18 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
                       validator: _validateNonNegativeInt,
                     ),
                   ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: AdminFormField(
+                      controller: _soldCountController,
+                      label: 'Sold Count',
+                      icon: Icons.shopping_bag_outlined,
+                      keyboard: TextInputType.number,
+                      action: TextInputAction.next,
+                      validator: _validateNonNegativeInt,
+                    ),
+                  ),
                 ],
-              ),
-              const SizedBox(height: 10),
-              AdminFormField(
-                controller: _soldCountController,
-                label: 'Sold Count',
-                icon: Icons.shopping_bag_outlined,
-                keyboard: TextInputType.number,
-                action: TextInputAction.next,
-                validator: _validateNonNegativeInt,
               ),
               const SizedBox(height: 20),
 
@@ -517,6 +543,18 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
     final parsed = double.tryParse((value ?? '').trim());
     if (parsed == null || parsed <= 0) {
       return 'Enter a valid amount greater than 0.';
+    }
+    return null;
+  }
+
+  String? _validateOptionalNonNegativeDouble(String? value) {
+    final raw = (value ?? '').trim();
+    if (raw.isEmpty) {
+      return null;
+    }
+    final parsed = double.tryParse(raw);
+    if (parsed == null || parsed < 0) {
+      return 'Enter a valid amount.';
     }
     return null;
   }

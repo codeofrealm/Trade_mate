@@ -7,6 +7,7 @@ class AdminProduct {
     required this.description,
     required this.category,
     required this.price,
+    required this.costPrice,
     required this.stock,
     required this.soldCount,
     required this.reviewCount,
@@ -23,6 +24,7 @@ class AdminProduct {
   final String description;
   final String category;
   final double price;
+  final double costPrice;
   final int stock;
   final int soldCount;
   final int reviewCount;
@@ -40,6 +42,12 @@ class AdminProduct {
       description: (data['description'] ?? '').toString(),
       category: (data['category'] ?? '').toString(),
       price: _asDouble(data['price']),
+      costPrice: _firstDouble(data, const [
+        'costPrice',
+        'buyPrice',
+        'purchasePrice',
+        'basePrice',
+      ]),
       stock: _asInt(data['stock']),
       soldCount: _asInt(data['soldCount']),
       reviewCount: _asInt(data['reviewCount']),
@@ -63,6 +71,7 @@ class AdminProductDraft {
     required this.description,
     required this.category,
     required this.price,
+    this.costPrice = 0,
     required this.stock,
     this.soldCount = 0,
     this.reviewCount = 0,
@@ -76,6 +85,7 @@ class AdminProductDraft {
   final String description;
   final String category;
   final double price;
+  final double costPrice;
   final int stock;
   final int soldCount;
   final int reviewCount;
@@ -90,6 +100,7 @@ class AdminProductDraft {
       'description': description.trim(),
       'category': category.trim(),
       'price': price,
+      'costPrice': costPrice,
       'stock': stock,
       'soldCount': soldCount,
       'reviewCount': reviewCount,
@@ -108,6 +119,7 @@ class AdminProductDraft {
       'description': description.trim(),
       'category': category.trim(),
       'price': price,
+      'costPrice': costPrice,
       'stock': stock,
       'soldCount': soldCount,
       'reviewCount': reviewCount,
@@ -138,6 +150,18 @@ double _asDouble(dynamic value) {
     return value.toDouble();
   }
   return double.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+double _firstDouble(Map<String, dynamic> data, List<String> keys) {
+  for (final key in keys) {
+    if (data.containsKey(key)) {
+      final value = _asDouble(data[key]);
+      if (value > 0) {
+        return value;
+      }
+    }
+  }
+  return 0;
 }
 
 DateTime? _asDate(dynamic value) {

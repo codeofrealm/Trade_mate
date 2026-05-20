@@ -19,7 +19,15 @@ class _AdminOrdersTabState extends State<AdminOrdersTab> {
   String _search = '';
   String _filterStatus = 'all';
 
-  static const _statuses = ['all', 'placed', 'processing', 'packed', 'shipped'];
+  static const _statuses = [
+    'all',
+    'placed',
+    'processing',
+    'packed',
+    'shipped',
+    'delivered',
+    'cancelled',
+  ];
 
   @override
   void dispose() {
@@ -40,14 +48,17 @@ class _AdminOrdersTabState extends State<AdminOrdersTab> {
         }
 
         final all = snapshot.data!;
-        var filtered = all.where((o) {
-          final s = o.status.trim().toLowerCase();
-          return s != 'delivered' && s != 'cancelled' && s != 'canceled';
-        }).toList();
+        var filtered = List<AdminUserOrder>.from(all);
 
         if (_filterStatus != 'all') {
           filtered = filtered
-              .where((o) => o.status.trim().toLowerCase() == _filterStatus)
+              .where((o) {
+                final status = o.status.trim().toLowerCase();
+                if (_filterStatus == 'cancelled') {
+                  return status == 'cancelled' || status == 'canceled';
+                }
+                return status == _filterStatus;
+              })
               .toList();
         }
         if (_search.isNotEmpty) {
@@ -57,6 +68,8 @@ class _AdminOrdersTabState extends State<AdminOrdersTab> {
                 (o) =>
                     o.productName.toLowerCase().contains(q) ||
                     o.productCategory.toLowerCase().contains(q) ||
+                    o.customerName.toLowerCase().contains(q) ||
+                    o.phone.toLowerCase().contains(q) ||
                     o.id.toLowerCase().contains(q) ||
                     o.shortUserId.toLowerCase().contains(q),
               )
@@ -64,6 +77,7 @@ class _AdminOrdersTabState extends State<AdminOrdersTab> {
         }
 
         final counts = {
+          'total': all.length,
           'active': all.where((o) {
             final s = o.status.trim().toLowerCase();
             return s != 'delivered' && s != 'cancelled' && s != 'canceled';
@@ -83,6 +97,10 @@ class _AdminOrdersTabState extends State<AdminOrdersTab> {
           'delivered': all
               .where((o) => o.status.trim().toLowerCase() == 'delivered')
               .length,
+          'cancelled': all.where((o) {
+            final s = o.status.trim().toLowerCase();
+            return s == 'cancelled' || s == 'canceled';
+          }).length,
         };
 
         return CustomScrollView(
@@ -111,7 +129,7 @@ class _AdminOrdersTabState extends State<AdminOrdersTab> {
                       child: Text(
                         _search.isNotEmpty || _filterStatus != 'all'
                             ? 'No orders match your filter.'
-                            : 'No active orders.',
+                            : 'No orders yet.',
                         style: const TextStyle(color: Color(0xFF8E8E93)),
                       ),
                     ),
@@ -311,7 +329,7 @@ class _OrdersHeader extends SliverPersistentHeaderDelegate {
                     children: [
                       AdminMiniStat(
                         label: 'Total',
-                        value: '${counts['active']}',
+                        value: '${counts['total']}',
                         color: const Color(0xFF007AFF),
                         fontSize: 20,
                         onTap: () => onFilterSelected('all'),

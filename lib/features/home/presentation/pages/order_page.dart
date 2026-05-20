@@ -26,7 +26,7 @@ class OrderPage extends StatelessWidget {
             children: [
               const LuxurySectionTitle(
                 'Open Orders',
-                subtitle: 'Review active orders and latest execution price.',
+                subtitle: 'Track active orders and latest execution price.',
               ),
               LuxuryGlassCard(
                 tint: LuxuryColors.gold.withValues(alpha: 0.13),

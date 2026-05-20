@@ -14,6 +14,10 @@ class AdminOrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColor = adminStatusColor(order.status);
     final shortOrderId = order.id.length > 8 ? order.id.substring(0, 8) : order.id;
+    final customerLabel = order.customerName.trim().isEmpty
+        ? order.shortUserId
+        : order.customerName.trim();
+    final phoneLabel = order.phone.trim().isEmpty ? 'No phone' : order.phone.trim();
 
     return GestureDetector(
       onTap: onTap,
@@ -72,11 +76,20 @@ class AdminOrderCard extends StatelessWidget {
             Container(height: 1, color: const Color(0xFFF2F2F7)),
             const SizedBox(height: 12),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _IconLabel(icon: Icons.person_outline_rounded, label: order.shortUserId),
+                Expanded(
+                  child: Wrap(
+                    spacing: 12,
+                    runSpacing: 8,
+                    children: [
+                      _IconLabel(icon: Icons.person_outline_rounded, label: customerLabel),
+                      _IconLabel(icon: Icons.phone_outlined, label: phoneLabel),
+                      _IconLabel(icon: Icons.shopping_bag_outlined, label: 'Qty ${order.quantity}'),
+                    ],
+                  ),
+                ),
                 const SizedBox(width: 12),
-                _IconLabel(icon: Icons.shopping_bag_outlined, label: 'Qty ${order.quantity}'),
-                const Spacer(),
                 Text(
                   'Rs ${order.totalAmount.toStringAsFixed(0)}',
                   style: const TextStyle(
@@ -137,9 +150,17 @@ class _IconLabel extends StatelessWidget {
       children: [
         Icon(icon, size: 14, color: const Color(0xFF8E8E93)),
         const SizedBox(width: 4),
-        Text(
-          label,
-          style: const TextStyle(color: Color(0xFF3C3C43), fontSize: 13, fontWeight: FontWeight.w500),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 140),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+                color: Color(0xFF3C3C43),
+                fontSize: 13,
+                fontWeight: FontWeight.w500),
+          ),
         ),
       ],
     );
@@ -208,6 +229,9 @@ class _AdminOrderDetailSheetState extends State<AdminOrderDetailSheet> {
   @override
   Widget build(BuildContext context) {
     final o = widget.order;
+    final customerName =
+        o.customerName.trim().isEmpty ? _userName : o.customerName.trim();
+    final phone = o.phone.trim().isEmpty ? 'Not provided' : o.phone.trim();
     return DraggableScrollableSheet(
       initialChildSize: 0.75,
       maxChildSize: 0.95,
@@ -251,18 +275,39 @@ class _AdminOrderDetailSheetState extends State<AdminOrderDetailSheet> {
                       style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 13)),
                   const SizedBox(height: 16),
                   AdminInfoCard(children: [
-                    AdminInfoRow(label: 'Order ID', value: o.id.isEmpty ? '-' : o.id),
-                    AdminInfoRow(label: 'User Name', value: _userName),
-                    AdminInfoRow(label: 'User ID', value: o.userId),
-                    AdminInfoRow(label: 'Quantity', value: '${o.quantity}'),
                     AdminInfoRow(
+                        icon: Icons.receipt_long_outlined,
+                        label: 'Order ID',
+                        value: o.id.isEmpty ? '-' : o.id),
+                    AdminInfoRow(
+                        icon: Icons.person_outline_rounded,
+                        label: 'Customer',
+                        value: customerName),
+                    AdminInfoRow(
+                        icon: Icons.phone_outlined,
+                        label: 'Phone',
+                        value: phone),
+                    AdminInfoRow(
+                        icon: Icons.badge_outlined,
+                        label: 'User ID',
+                        value: o.userId),
+                    AdminInfoRow(
+                        icon: Icons.shopping_bag_outlined,
+                        label: 'Quantity',
+                        value: '${o.quantity}'),
+                    AdminInfoRow(
+                        icon: Icons.currency_rupee_rounded,
                         label: 'Unit Price',
                         value: 'Rs ${o.productPrice.toStringAsFixed(2)}'),
                     AdminInfoRow(
+                        icon: Icons.payments_outlined,
                         label: 'Total',
                         value: 'Rs ${o.totalAmount.toStringAsFixed(2)}',
                         bold: true),
-                    AdminInfoRow(label: 'Ordered', value: adminTimeLabel(o.createdAt)),
+                    AdminInfoRow(
+                        icon: Icons.schedule_rounded,
+                        label: 'Ordered',
+                        value: adminTimeLabel(o.createdAt)),
                   ]),
                   const SizedBox(height: 12),
                   AdminInfoCard(children: [

@@ -42,26 +42,41 @@ class AdminInfoCard extends StatelessWidget {
 
 class AdminInfoRow extends StatelessWidget {
   const AdminInfoRow(
-      {super.key, required this.label, required this.value, this.bold = false});
+      {super.key,
+      required this.label,
+      required this.value,
+      this.bold = false,
+      this.icon});
   final String label;
   final String value;
   final bool bold;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Row(
           children: [
+            if (icon != null) ...[
+              Icon(icon, size: 16, color: const Color(0xFF8E8E93)),
+              const SizedBox(width: 8),
+            ],
             Expanded(
               child: Text(label,
                   style: const TextStyle(
                       color: Color(0xFF8E8E93), fontSize: 13)),
             ),
-            Text(value,
-                style: TextStyle(
-                    color: const Color(0xFF000000),
-                    fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-                    fontSize: 13)),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Text(value,
+                  textAlign: TextAlign.end,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      color: const Color(0xFF000000),
+                      fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+                      fontSize: 13)),
+            ),
           ],
         ),
       );

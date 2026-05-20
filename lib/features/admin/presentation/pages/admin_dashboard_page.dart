@@ -6,7 +6,6 @@ import '../../../../app/ui/glass.dart';
 import '../../../auth/data/auth_service.dart';
 import '../../../auth/data/auth_user_store.dart';
 import '../../data/models/admin_product.dart';
-import '../widgets/dashboard/admin_completed_orders_tab.dart';
 import '../widgets/dashboard/admin_overview_tab.dart';
 import '../widgets/dashboard/admin_orders_tab.dart';
 import '../widgets/dashboard/admin_products_tab.dart';
@@ -28,7 +27,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     'Products',
     'Orders',
     'Customers',
-    'Completed',
   ];
 
   static const _navItems = [
@@ -51,11 +49,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       icon: Icons.people_outline_rounded,
       activeIcon: Icons.people_rounded,
       label: 'Customers',
-    ),
-    _AdminNavItem(
-      icon: Icons.check_circle_outline_rounded,
-      activeIcon: Icons.check_circle_rounded,
-      label: 'Done',
     ),
   ];
 
@@ -265,7 +258,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 ),
                 const AdminOrdersTab(),
                 const AdminReviewsTab(),
-                const AdminCompletedOrdersTab(),
               ],
             ),
           ),
