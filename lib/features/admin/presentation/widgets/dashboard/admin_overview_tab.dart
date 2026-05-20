@@ -33,12 +33,6 @@ class AdminOverviewTab extends StatelessWidget {
                 products.where((p) => p.isActive && p.stock <= 5).toList()
                   ..sort((a, b) => a.stock.compareTo(b.stock));
 
-            double _periodAmount(bool Function(AdminUserOrder) test) => orders
-                .where((o) => !o.isCancelled && test(o))
-                .fold(0.0, (s, o) => s + _orderTotal(o));
-
-            final weekStart = now.subtract(Duration(days: now.weekday - 1));
-
             final Map<int, double> monthlyMap = {};
             final Map<int, double> weeklyMap = {};
             final Map<int, double> dailyMap = {};
@@ -100,40 +94,6 @@ class AdminOverviewTab extends StatelessWidget {
                   }).length,
                   deliveredAmount: financeTotals.deliveredAmount,
                   totalOrderAmount: financeTotals.totalAmount,
-                  totalProfit: financeTotals.totalProfit,
-                  totalLoss: financeTotals.totalLoss,
-                ),
-                const SizedBox(height: 20),
-                const _SectionTitle(text: 'Revenue Summary'),
-                const SizedBox(height: 10),
-                AdminProfitRow(
-                  today: _periodAmount(
-                    (o) =>
-                        o.createdAt != null &&
-                        o.createdAt!.year == now.year &&
-                        o.createdAt!.month == now.month &&
-                        o.createdAt!.day == now.day,
-                  ),
-                  weekly: _periodAmount(
-                    (o) =>
-                        o.createdAt != null &&
-                        !o.createdAt!.isBefore(
-                          DateTime(
-                            weekStart.year,
-                            weekStart.month,
-                            weekStart.day,
-                          ),
-                        ),
-                  ),
-                  monthly: _periodAmount(
-                    (o) =>
-                        o.createdAt != null &&
-                        o.createdAt!.year == now.year &&
-                        o.createdAt!.month == now.month,
-                  ),
-                  yearly: _periodAmount(
-                    (o) => o.createdAt != null && o.createdAt!.year == now.year,
-                  ),
                 ),
                 const SizedBox(height: 20),
                 const _SectionTitle(text: 'Revenue Charts'),

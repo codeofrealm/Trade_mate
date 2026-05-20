@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import '../../../../../app/app_routes.dart';
 import '../../../../admin/data/models/admin_product.dart';
 import '../../../data/home_product_service.dart';
-import '../../pages/order_confirm_page.dart';
 import '../../pages/product_details_page.dart';
 
 class HomeDashboardTab extends StatefulWidget {
@@ -782,11 +781,28 @@ class _ProductCard extends StatefulWidget {
 }
 
 class _ProductCardState extends State<_ProductCard> {
-  Future<void> _quickOrder() async {
-    await Navigator.of(context).pushNamed(
-      AppRoutes.orderConfirm,
-      arguments: OrderConfirmPageArgs(product: widget.product, quantity: 1),
-    );
+  bool _isAddingToCart = false;
+
+  Future<void> _addToCart() async {
+    if (_isAddingToCart) return;
+    setState(() => _isAddingToCart = true);
+    try {
+      await HomeProductService.instance.addToCart(
+        product: widget.product,
+        quantity: 1,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Product added to cart.')),
+      );
+    } on HomeProductException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (mounted) setState(() => _isAddingToCart = false);
+    }
   }
 
   @override
@@ -893,8 +909,6 @@ class _ProductCardState extends State<_ProductCard> {
                       letterSpacing: -0.2,
                     ),
                   ),
-                  const SizedBox(height: 3),
-                  _StarRow(rating: product.rating),
                   const SizedBox(height: 7),
                   Row(
                     children: [
@@ -910,7 +924,7 @@ class _ProductCardState extends State<_ProductCard> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: _quickOrder,
+                        onTap: _isAddingToCart ? null : _addToCart,
                         child: Container(
                           width: 30,
                           height: 30,
@@ -918,11 +932,20 @@ class _ProductCardState extends State<_ProductCard> {
                             color: const Color(0xFF007AFF),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(
-                            CupertinoIcons.cart_fill_badge_plus,
-                            size: 14,
-                            color: Colors.white,
-                          ),
+                          child: _isAddingToCart
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.add_shopping_cart_outlined,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
                         ),
                       ),
                     ],
@@ -938,49 +961,6 @@ class _ProductCardState extends State<_ProductCard> {
 }
 
 // ── Star row ──────────────────────────────────────────────────────────────────
-
-class _StarRow extends StatelessWidget {
-  const _StarRow({required this.rating});
-  final double rating;
-
-  @override
-  Widget build(BuildContext context) {
-    final stars = rating.clamp(0.0, 5.0);
-    return Row(
-      children: [
-        ...List.generate(5, (i) {
-          if (i < stars.floor()) {
-            return const Icon(
-              CupertinoIcons.star_fill,
-              size: 10,
-              color: Color(0xFFFF9500),
-            );
-          } else if (i < stars) {
-            return const Icon(
-              CupertinoIcons.star_lefthalf_fill,
-              size: 10,
-              color: Color(0xFFFF9500),
-            );
-          }
-          return const Icon(
-            CupertinoIcons.star,
-            size: 10,
-            color: Color(0xFFD1D1D6),
-          );
-        }),
-        const SizedBox(width: 4),
-        Text(
-          stars.toStringAsFixed(1),
-          style: const TextStyle(
-            color: Color(0xFF8E8E93),
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 // ── Product image ─────────────────────────────────────────────────────────────
 

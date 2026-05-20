@@ -26,6 +26,19 @@ class AuthValidators {
     return null;
   }
 
+  static String? validatePhone(String? value) {
+    final digits = (value ?? '').replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) {
+      return 'Please enter your phone number';
+    }
+
+    if (digits.length != 10) {
+      return 'Please enter a valid 10-digit phone number';
+    }
+
+    return null;
+  }
+
   static String? validatePassword(String? value, {int minLength = 6}) {
     final password = value ?? '';
     if (password.isEmpty) {

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../admin/data/models/admin_product.dart';
+import '../../auth/data/auth_service.dart';
 import 'models/home_user_address.dart';
 
 class HomeUserProfileService {
@@ -36,9 +37,9 @@ class HomeUserProfileService {
     final data = doc.data() ?? <String, dynamic>{};
     final addressData = data['address'];
     if (addressData is Map<String, dynamic>) {
-      return HomeUserAddress.fromMap(addressData);
+      return _normalizeAddressForCurrentUser(HomeUserAddress.fromMap(addressData));
     }
-    return HomeUserAddress.empty;
+    return _normalizeAddressForCurrentUser(HomeUserAddress.empty);
   }
 
   Future<void> saveAddress(HomeUserAddress address) async {
@@ -46,9 +47,48 @@ class HomeUserProfileService {
     if (user == null) throw const HomeProfileException('Please login again.');
 
     await _firestore.collection('users').doc(user.uid).set({
-      'address': address.toMap(),
+      'address': _normalizeAddressForCurrentUser(address).toMap(),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+  }
+
+  Future<void> saveAddressWithCoordinates({
+    required HomeUserAddress address,
+    required double latitude,
+    required double longitude,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) throw const HomeProfileException('Please login again.');
+
+    await _firestore.collection('users').doc(user.uid).set({
+      'address': _normalizeAddressForCurrentUser(address).toMap(),
+      'location': {
+        'latitude': latitude,
+        'longitude': longitude,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  HomeUserAddress _normalizeAddressForCurrentUser(HomeUserAddress address) {
+    if (!_isCurrentUserAdmin) return address;
+
+    return HomeUserAddress(
+      fullName: address.fullName,
+      phone: AuthService.adminPhoneNumber,
+      line1: address.line1,
+      line2: address.line2,
+      city: address.city,
+      state: address.state,
+      postalCode: address.postalCode,
+      country: address.country,
+    );
+  }
+
+  bool get _isCurrentUserAdmin {
+    final email = _auth.currentUser?.email?.trim().toLowerCase() ?? '';
+    return email == 'admin@gmail.com';
   }
 
   // ── Wishlist ───────────────────────────────────────────────────────────────

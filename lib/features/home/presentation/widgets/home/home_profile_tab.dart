@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../auth/data/auth_service.dart';
+import '../../../../auth/data/auth_user_store.dart';
 import '../../../data/home_user_profile_service.dart';
 import '../../../data/models/home_user_address.dart';
 import '../profile/home_profile_widgets.dart';
@@ -16,6 +18,7 @@ class HomeProfileTab extends StatefulWidget {
 }
 
 class _HomeProfileTabState extends State<HomeProfileTab> {
+  static const _adminPhoneNumber = AuthService.adminPhoneNumber;
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -30,6 +33,8 @@ class _HomeProfileTabState extends State<HomeProfileTab> {
   bool _isLoading = true;
   bool _isSaving = false;
   bool _isEditingAddress = true;
+
+  bool get _isAdminUser => (AuthUserStore.role ?? '').toLowerCase() == 'admin';
 
   @override
   void initState() {
@@ -66,7 +71,7 @@ class _HomeProfileTabState extends State<HomeProfileTab> {
 
   void _applyAddress(HomeUserAddress address) {
     _fullNameController.text = address.fullName;
-    _phoneController.text = address.phone;
+    _phoneController.text = _isAdminUser ? _adminPhoneNumber : address.phone;
     _line1Controller.text = address.line1;
     _line2Controller.text = address.line2;
     _cityController.text = address.city;
@@ -81,7 +86,7 @@ class _HomeProfileTabState extends State<HomeProfileTab> {
     try {
       final address = HomeUserAddress(
         fullName: _fullNameController.text.trim(),
-        phone: _phoneController.text.trim(),
+        phone: _isAdminUser ? _adminPhoneNumber : _phoneController.text.trim(),
         line1: _line1Controller.text.trim(),
         line2: _line2Controller.text.trim(),
         city: _cityController.text.trim(),
@@ -210,6 +215,7 @@ class _HomeProfileTabState extends State<HomeProfileTab> {
                         requiredValidator: _required,
                         phoneValidator: _phoneValidator,
                         postalCodeValidator: _postalCodeValidator,
+                        phoneReadOnly: _isAdminUser,
                       ),
                   ],
                 ),
@@ -240,6 +246,9 @@ class _HomeProfileTabState extends State<HomeProfileTab> {
   String? _phoneValidator(String? value) {
     final raw = (value ?? '').trim();
     if (raw.isEmpty) return 'This field is required.';
+    if (_isAdminUser && raw != _adminPhoneNumber) {
+      return 'Admin phone number must be $_adminPhoneNumber.';
+    }
     final digits = raw.replaceAll(RegExp(r'\D'), '');
     if (digits.length < 8 || digits.length > 15) return 'Enter valid phone number.';
     return null;

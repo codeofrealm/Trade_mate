@@ -12,8 +12,6 @@ class AdminStatsGrid extends StatelessWidget {
     required this.activeOrders,
     required this.deliveredAmount,
     required this.totalOrderAmount,
-    required this.totalProfit,
-    required this.totalLoss,
   });
 
   final int totalProducts;
@@ -22,8 +20,6 @@ class AdminStatsGrid extends StatelessWidget {
   final int activeOrders;
   final double deliveredAmount;
   final double totalOrderAmount;
-  final double totalProfit;
-  final double totalLoss;
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +36,6 @@ class AdminStatsGrid extends StatelessWidget {
           Icons.check_circle_outline_rounded, const Color(0xFF34C759)),
       _StatData('Total Order Amount', adminFormatRs(totalOrderAmount),
           Icons.currency_rupee_rounded, const Color(0xFFFF3B30)),
-      _StatData('Total Profit', adminFormatRs(totalProfit),
-          Icons.trending_up_rounded, const Color(0xFF0C8B3D)),
-      _StatData('Total Loss', adminFormatRs(totalLoss),
-          Icons.trending_down_rounded, const Color(0xFFFF3B30)),
     ];
 
     return GridView.builder(

@@ -126,6 +126,7 @@ class HomeAddressFormCard extends StatelessWidget {
     required this.requiredValidator,
     required this.phoneValidator,
     required this.postalCodeValidator,
+    this.phoneReadOnly = false,
   });
 
   final GlobalKey<FormState> formKey;
@@ -144,6 +145,7 @@ class HomeAddressFormCard extends StatelessWidget {
   final String? Function(String?) requiredValidator;
   final String? Function(String?) phoneValidator;
   final String? Function(String?) postalCodeValidator;
+  final bool phoneReadOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -180,6 +182,7 @@ class HomeAddressFormCard extends StatelessWidget {
             TextFormField(
               controller: phoneController,
               keyboardType: TextInputType.phone,
+              readOnly: phoneReadOnly,
               decoration: const InputDecoration(labelText: 'Phone Number'),
               validator: phoneValidator,
             ),

@@ -14,9 +14,40 @@ class AuthService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const String _fixedAdminUsername = 'Admin';
   static const String _fixedAdminEmail = 'admin@gmail.com';
+  static const String adminPhoneNumber = '1234567890';
 
   static bool _equalsIgnoreCase(String a, String b) {
     return a.trim().toLowerCase() == b.trim().toLowerCase();
+  }
+
+  static String _normalizePhoneNumber(String value) {
+    return value.replaceAll(RegExp(r'\D'), '');
+  }
+
+  static Future<QueryDocumentSnapshot<Map<String, dynamic>>?>
+      _findUserByPhoneNumber(String phoneNumber) async {
+    final normalizedPhone = _normalizePhoneNumber(phoneNumber);
+    if (normalizedPhone.isEmpty) return null;
+
+    final topLevelMatch = await _firestore
+        .collection('users')
+        .where('phoneNumber', isEqualTo: normalizedPhone)
+        .limit(1)
+        .get();
+    if (topLevelMatch.docs.isNotEmpty) {
+      return topLevelMatch.docs.first;
+    }
+
+    final addressMatch = await _firestore
+        .collection('users')
+        .where('address.phone', isEqualTo: normalizedPhone)
+        .limit(1)
+        .get();
+    if (addressMatch.docs.isNotEmpty) {
+      return addressMatch.docs.first;
+    }
+
+    return null;
   }
 
   static Future<bool> isSignedIn() async {
@@ -39,12 +70,14 @@ class AuthService {
       String profileRole = 'user';
       String profileUsername = user.displayName?.trim() ?? '';
       String profileEmail = normalizedEmail;
+      String profilePhoneNumber = '';
 
       if (userDoc.exists) {
         final data = userDoc.data() ?? <String, dynamic>{};
         final roleValue = data['role']?.toString().trim().toLowerCase();
         final nameValue = data['username']?.toString().trim();
         final emailValue = data['email']?.toString().trim().toLowerCase();
+        final phoneValue = data['phoneNumber']?.toString().trim();
 
         if (roleValue != null && roleValue.isNotEmpty) {
           profileRole = roleValue;
@@ -55,12 +88,16 @@ class AuthService {
         if (emailValue != null && emailValue.isNotEmpty) {
           profileEmail = emailValue;
         }
+        if (phoneValue != null && phoneValue.isNotEmpty) {
+          profilePhoneNumber = phoneValue;
+        }
       } else {
         final isAdminIdentity = normalizedEmail == _fixedAdminEmail;
         if (isAdminIdentity) {
           await userDocRef.set({
             'username': _fixedAdminUsername,
             'email': _fixedAdminEmail,
+            'phoneNumber': adminPhoneNumber,
             'role': 'admin',
             'updatedAt': FieldValue.serverTimestamp(),
             'createdAt': FieldValue.serverTimestamp(),
@@ -69,6 +106,7 @@ class AuthService {
           profileRole = 'admin';
           profileUsername = _fixedAdminUsername;
           profileEmail = _fixedAdminEmail;
+          profilePhoneNumber = adminPhoneNumber;
         } else {
           if (profileUsername.isEmpty) {
             profileUsername = (normalizedEmail.isNotEmpty
@@ -80,6 +118,7 @@ class AuthService {
           await userDocRef.set({
             'username': profileUsername,
             'email': normalizedEmail,
+            'phoneNumber': '',
             'role': 'user',
             'updatedAt': FieldValue.serverTimestamp(),
             'createdAt': FieldValue.serverTimestamp(),
@@ -92,6 +131,7 @@ class AuthService {
         await userDocRef.set({
           'username': _fixedAdminUsername,
           'email': _fixedAdminEmail,
+          'phoneNumber': adminPhoneNumber,
           'role': 'admin',
           'updatedAt': FieldValue.serverTimestamp(),
           'createdAt': FieldValue.serverTimestamp(),
@@ -100,12 +140,14 @@ class AuthService {
         profileRole = 'admin';
         profileUsername = _fixedAdminUsername;
         profileEmail = _fixedAdminEmail;
+        profilePhoneNumber = adminPhoneNumber;
       }
 
       AuthUserStore.username = profileUsername.isNotEmpty
           ? profileUsername
           : (normalizedEmail.isNotEmpty ? normalizedEmail.split('@').first : '');
       AuthUserStore.email = profileEmail.isNotEmpty ? profileEmail : normalizedEmail;
+      AuthUserStore.phoneNumber = profilePhoneNumber;
       AuthUserStore.role = profileRole;
     } on FirebaseException catch (_) {
       // If offline, still treat the Firebase user as signed-in and use
@@ -115,6 +157,7 @@ class AuthService {
           ? user.displayName!.trim()
           : (isAdminIdentity ? _fixedAdminUsername : normalizedEmail.split('@').first);
       AuthUserStore.email = normalizedEmail;
+      AuthUserStore.phoneNumber = isAdminIdentity ? adminPhoneNumber : null;
       AuthUserStore.role = isAdminIdentity ? 'admin' : 'user';
     } catch (_) {
       // Keep the session but avoid crashing the app on startup.
@@ -123,6 +166,7 @@ class AuthService {
           ? user.displayName!.trim()
           : (isAdminIdentity ? _fixedAdminUsername : normalizedEmail.split('@').first);
       AuthUserStore.email = normalizedEmail;
+      AuthUserStore.phoneNumber = isAdminIdentity ? adminPhoneNumber : null;
       AuthUserStore.role = isAdminIdentity ? 'admin' : 'user';
     }
   }
@@ -130,11 +174,13 @@ class AuthService {
   static Future<void> registerUser({
     required String username,
     required String email,
+    required String phoneNumber,
     required String password,
   }) async {
     final cleanUsername = username.trim();
     final cleanEmail = email.trim();
     final normalizedEmail = cleanEmail.toLowerCase();
+    final normalizedPhone = _normalizePhoneNumber(phoneNumber);
 
     if (normalizedEmail == _fixedAdminEmail) {
       throw const AuthException(
@@ -146,6 +192,21 @@ class AuthService {
       throw const AuthException(
         'Admin username is reserved and cannot be used for user registration.',
       );
+    }
+
+    if (normalizedPhone.length != 10) {
+      throw const AuthException('Please enter a valid 10-digit phone number.');
+    }
+
+    if (normalizedPhone == adminPhoneNumber) {
+      throw const AuthException(
+        '1234567890 is reserved for Admin Login only.',
+      );
+    }
+
+    final existingUserByPhone = await _findUserByPhoneNumber(normalizedPhone);
+    if (existingUserByPhone != null) {
+      throw const AuthException('This phone number is already registered.');
     }
 
     try {
@@ -164,13 +225,17 @@ class AuthService {
       await _firestore.collection('users').doc(user.uid).set({
         'username': cleanUsername,
         'email': normalizedEmail,
+        'phoneNumber': normalizedPhone,
         'role': 'user',
         'updatedAt': FieldValue.serverTimestamp(),
         'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
       await user.updateDisplayName(cleanUsername);
-      await _auth.signOut();
+      AuthUserStore.username = cleanUsername;
+      AuthUserStore.email = normalizedEmail;
+      AuthUserStore.phoneNumber = normalizedPhone;
+      AuthUserStore.role = 'user';
     } on AuthException {
       rethrow;
     } on FirebaseAuthException catch (error) {
@@ -187,11 +252,29 @@ class AuthService {
   }
 
   static Future<void> login({
-    required String email,
+    required String phoneNumber,
     required String password,
   }) async {
-    final cleanEmail = email.trim();
-    final normalizedEmail = cleanEmail.toLowerCase();
+    final normalizedPhone = _normalizePhoneNumber(phoneNumber);
+    if (normalizedPhone.length != 10) {
+      throw const AuthException('Please enter a valid 10-digit phone number.');
+    }
+
+    String normalizedEmail;
+    if (normalizedPhone == adminPhoneNumber) {
+      normalizedEmail = _fixedAdminEmail;
+    } else {
+      final matchedUser = await _findUserByPhoneNumber(normalizedPhone);
+      if (matchedUser == null) {
+        throw const AuthException('Invalid phone number or password.');
+      }
+      final matchedEmail = matchedUser.data()['email']?.toString().trim().toLowerCase() ?? '';
+      if (matchedEmail.isEmpty) {
+        throw const AuthException('This account is missing an email record.');
+      }
+      normalizedEmail = matchedEmail;
+    }
+    final cleanEmail = normalizedEmail;
 
     try {
       final credential = await _auth.signInWithEmailAndPassword(
@@ -210,6 +293,7 @@ class AuthService {
       String profileRole = 'user';
       String profileUsername = user.displayName?.trim() ?? '';
       String profileEmail = normalizedEmail;
+      String profilePhoneNumber = normalizedPhone;
       bool hasDbUsername = false;
       bool hasDbEmail = false;
 
@@ -218,6 +302,7 @@ class AuthService {
         final roleValue = data['role']?.toString().trim().toLowerCase();
         final nameValue = data['username']?.toString().trim();
         final emailValue = data['email']?.toString().trim().toLowerCase();
+        final phoneValue = data['phoneNumber']?.toString().trim();
 
         if (roleValue != null && roleValue.isNotEmpty) {
           profileRole = roleValue;
@@ -230,6 +315,9 @@ class AuthService {
           profileEmail = emailValue;
           hasDbEmail = true;
         }
+        if (phoneValue != null && phoneValue.isNotEmpty) {
+          profilePhoneNumber = phoneValue;
+        }
       } else {
         final isAdminIdentity = normalizedEmail == _fixedAdminEmail;
 
@@ -239,6 +327,7 @@ class AuthService {
           await userDocRef.set({
             'username': _fixedAdminUsername,
             'email': _fixedAdminEmail,
+            'phoneNumber': adminPhoneNumber,
             'role': 'admin',
             'updatedAt': FieldValue.serverTimestamp(),
             'createdAt': FieldValue.serverTimestamp(),
@@ -247,6 +336,7 @@ class AuthService {
           profileRole = 'admin';
           profileUsername = _fixedAdminUsername;
           profileEmail = _fixedAdminEmail;
+          profilePhoneNumber = adminPhoneNumber;
           hasDbUsername = true;
           hasDbEmail = true;
         } else {
@@ -257,6 +347,7 @@ class AuthService {
           await userDocRef.set({
             'username': profileUsername,
             'email': normalizedEmail,
+            'phoneNumber': normalizedPhone,
             'role': 'user',
             'updatedAt': FieldValue.serverTimestamp(),
             'createdAt': FieldValue.serverTimestamp(),
@@ -276,6 +367,7 @@ class AuthService {
         await userDocRef.set({
           'username': _fixedAdminUsername,
           'email': _fixedAdminEmail,
+          'phoneNumber': adminPhoneNumber,
           'role': 'admin',
           'updatedAt': FieldValue.serverTimestamp(),
           'createdAt': FieldValue.serverTimestamp(),
@@ -284,6 +376,7 @@ class AuthService {
         profileRole = 'admin';
         profileUsername = _fixedAdminUsername;
         profileEmail = _fixedAdminEmail;
+        profilePhoneNumber = adminPhoneNumber;
         hasDbUsername = true;
         hasDbEmail = true;
       }
@@ -292,6 +385,7 @@ class AuthService {
           ? profileUsername
           : cleanEmail.split('@').first;
       AuthUserStore.email = normalizedEmail;
+      AuthUserStore.phoneNumber = profilePhoneNumber;
       AuthUserStore.role = profileRole;
     } on AuthException {
       rethrow;
@@ -339,7 +433,7 @@ class AuthService {
       case 'invalid-credential':
       case 'wrong-password':
       case 'user-not-found':
-        return 'Invalid email or password.';
+        return 'Invalid phone number or password.';
       case 'email-already-in-use':
         return 'This email is already registered.';
       case 'weak-password':

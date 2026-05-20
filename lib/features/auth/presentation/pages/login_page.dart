@@ -16,18 +16,18 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _emailFocusNode = FocusNode();
+  final _phoneFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
   bool _isLoading = false;
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
-    _emailFocusNode.dispose();
+    _phoneFocusNode.dispose();
     _passwordFocusNode.dispose();
     super.dispose();
   }
@@ -39,7 +39,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       await AuthService.login(
-        email: _emailController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
         password: _passwordController.text,
       );
 
@@ -60,34 +60,6 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.of(
         context,
       ).pushReplacementNamed(isAdmin ? AppRoutes.admin : AppRoutes.home);
-    } on AuthException catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _forgotPassword() async {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter your email to reset password.')),
-      );
-      return;
-    }
-    FocusScope.of(context).unfocus();
-    setState(() => _isLoading = true);
-    try {
-      await AuthService.sendPasswordResetEmail(email: email);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password reset email sent. Check your inbox.'),
-        ),
-      );
     } on AuthException catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -139,23 +111,19 @@ class _LoginPageState extends State<LoginPage> {
                           children: [
                             const _AuthBrandHeader(
                               icon: Icons.storefront_outlined,
-                              title: 'Welcome back',
-                              subtitle:
-                                  'Sign in to manage products, orders, and your TradeMate workspace.',
+                              title: 'Selve vinagam',
+                              subtitle: '',
                             ),
                             const SizedBox(height: 28),
                             AuthTextField(
-                              controller: _emailController,
-                              label: 'Email',
-                              keyboardType: TextInputType.emailAddress,
-                              validator: AuthValidators.validateEmail,
-                              prefixIcon: const Icon(Icons.mail_outline),
-                              focusNode: _emailFocusNode,
+                              controller: _phoneController,
+                              label: 'Phone Number',
+                              keyboardType: TextInputType.phone,
+                              validator: AuthValidators.validatePhone,
+                              prefixIcon: const Icon(Icons.phone_outlined),
+                              focusNode: _phoneFocusNode,
                               textInputAction: TextInputAction.next,
-                              autofillHints: const [
-                                AutofillHints.username,
-                                AutofillHints.email,
-                              ],
+                              autofillHints: const [AutofillHints.telephoneNumber],
                               onFieldSubmitted: (_) =>
                                   _passwordFocusNode.requestFocus(),
                             ),
@@ -183,13 +151,6 @@ class _LoginPageState extends State<LoginPage> {
                                       : Icons.visibility_outlined,
                                   color: const Color(0xFF64748B),
                                 ),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed: _isLoading ? null : _forgotPassword,
-                                child: const Text('Forgot password?'),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -272,35 +233,27 @@ class _AuthBrandHeader extends StatelessWidget {
           child: Icon(icon, color: const Color(0xFF007AFF), size: 36),
         ),
         const SizedBox(height: 22),
-        const Text(
-          'TradeMate',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Color(0xFF0F172A),
-            fontSize: 32,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        const SizedBox(height: 8),
         Text(
           title,
           textAlign: TextAlign.center,
           style: const TextStyle(
             color: Color(0xFF172033),
-            fontSize: 22,
+            fontSize: 32,
             fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          subtitle,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Color(0xFF64748B),
-            fontSize: 15,
-            height: 1.45,
+        if (subtitle.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 15,
+              height: 1.45,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

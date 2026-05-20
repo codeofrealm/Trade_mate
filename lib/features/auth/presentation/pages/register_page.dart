@@ -15,10 +15,12 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _usernameFocusNode = FocusNode();
+  final _phoneFocusNode = FocusNode();
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
   final _confirmPasswordFocusNode = FocusNode();
@@ -29,10 +31,12 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void dispose() {
     _usernameController.dispose();
+    _phoneController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _usernameFocusNode.dispose();
+    _phoneFocusNode.dispose();
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
     _confirmPasswordFocusNode.dispose();
@@ -47,6 +51,7 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       await AuthService.registerUser(
         username: _usernameController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
@@ -54,9 +59,9 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Register successful. Please login.')),
+        const SnackBar(content: Text('Account created. Allow location to continue.')),
       );
-      Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+      Navigator.of(context).pushReplacementNamed(AppRoutes.locationSetup);
     } on AuthException catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -72,7 +77,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
-        title: const Text('Create Account'),
+        title: const Text('Selve vinagam'),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -107,6 +112,21 @@ class _RegisterPageState extends State<RegisterPage> {
                             focusNode: _usernameFocusNode,
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.name],
+                            onFieldSubmitted: (_) =>
+                                _phoneFocusNode.requestFocus(),
+                          ),
+                          const SizedBox(height: 14),
+                          AuthTextField(
+                            controller: _phoneController,
+                            label: 'Phone Number',
+                            keyboardType: TextInputType.phone,
+                            validator: AuthValidators.validatePhone,
+                            prefixIcon: const Icon(Icons.phone_outlined),
+                            focusNode: _phoneFocusNode,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [
+                              AutofillHints.telephoneNumber,
+                            ],
                             onFieldSubmitted: (_) =>
                                 _emailFocusNode.requestFocus(),
                           ),
@@ -260,22 +280,12 @@ class _RegisterHeader extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         const Text(
-          'Join TradeMate',
+          'Selve vinagam',
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Color(0xFF0F172A),
             fontSize: 30,
             fontWeight: FontWeight.w900,
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Create your account and start tracking marketplace activity in one clean dashboard.',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Color(0xFF64748B),
-            fontSize: 15,
-            height: 1.45,
           ),
         ),
       ],
