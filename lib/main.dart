@@ -19,7 +19,7 @@ Future<void> main() async {
 
 bool _supportsFirebase() {
   if (kIsWeb) {
-    return false;
+    return true;
   }
 
   return defaultTargetPlatform == TargetPlatform.android ||

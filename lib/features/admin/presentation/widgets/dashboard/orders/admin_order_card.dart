@@ -13,13 +13,15 @@ class AdminOrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = adminStatusColor(order.status);
+    final shortOrderId = order.id.length > 8 ? order.id.substring(0, 8) : order.id;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFFE5E5EA)),
           boxShadow: const [
             BoxShadow(color: Color(0x08000000), blurRadius: 8, offset: Offset(0, 2)),
@@ -29,49 +31,87 @@ class AdminOrderCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(
-                    order.productName.isEmpty ? 'Unknown product' : order.productName,
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF000000)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ORDER #${shortOrderId.toUpperCase()}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF8E8E93),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        order.productName.isEmpty ? 'Unknown product' : order.productName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF000000),
+                          letterSpacing: -0.3,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(width: 12),
                 AdminStatusPill(
-                    label: order.status.isEmpty ? 'placed' : order.status,
-                    color: statusColor),
+                  label: order.status.isEmpty ? 'placed' : order.status,
+                  color: statusColor,
+                ),
               ],
             ),
-            const SizedBox(height: 3),
-            Text(
-              order.productCategory.isEmpty ? 'No category' : order.productCategory,
-              style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 12.5),
-            ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
+            Container(height: 1, color: const Color(0xFFF2F2F7)),
+            const SizedBox(height: 12),
             Row(
               children: [
-                const Icon(Icons.person_outline_rounded, size: 14, color: Color(0xFF8E8E93)),
-                const SizedBox(width: 4),
-                Text(order.shortUserId,
-                    style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 12)),
-                const SizedBox(width: 10),
-                const Icon(Icons.shopping_bag_outlined, size: 14, color: Color(0xFF8E8E93)),
-                const SizedBox(width: 4),
-                Text('Qty ${order.quantity}',
-                    style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 12)),
+                _IconLabel(icon: Icons.person_outline_rounded, label: order.shortUserId),
+                const SizedBox(width: 12),
+                _IconLabel(icon: Icons.shopping_bag_outlined, label: 'Qty ${order.quantity}'),
                 const Spacer(),
-                Text('Rs ${order.totalAmount.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                        color: Color(0xFF000000), fontWeight: FontWeight.w700, fontSize: 14)),
+                Text(
+                  'Rs ${order.totalAmount.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    color: Color(0xFF000000),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.location_on_outlined, size: 14, color: Color(0xFF8E8E93)),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    order.addressSummary.isEmpty ? 'No address provided' : order.addressSummary,
+                    style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.schedule_rounded, size: 13, color: Color(0xFFC7C7CC)),
+                const Icon(Icons.schedule_rounded, size: 14, color: Color(0xFF8E8E93)),
                 const SizedBox(width: 4),
-                Text(adminTimeLabel(order.createdAt),
-                    style: const TextStyle(color: Color(0xFFC7C7CC), fontSize: 11.5)),
+                Text(
+                  adminTimeLabel(order.createdAt),
+                  style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 12),
+                ),
                 if (onTap != null) ...[
                   const Spacer(),
                   const Icon(Icons.chevron_right_rounded, size: 18, color: Color(0xFFC7C7CC)),
@@ -81,6 +121,27 @@ class AdminOrderCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _IconLabel extends StatelessWidget {
+  const _IconLabel({required this.icon, required this.label});
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: const Color(0xFF8E8E93)),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(color: Color(0xFF3C3C43), fontSize: 13, fontWeight: FontWeight.w500),
+        ),
+      ],
     );
   }
 }
@@ -95,6 +156,31 @@ class AdminOrderDetailSheet extends StatefulWidget {
 
 class _AdminOrderDetailSheetState extends State<AdminOrderDetailSheet> {
   bool _isUpdating = false;
+  String _userName = 'Loading...';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+  }
+
+  Future<void> _fetchUserName() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.order.userId)
+          .get();
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        final name = data['name'] ?? data['username'] ?? data['displayName'] ?? 'Unknown User';
+        if (mounted) setState(() => _userName = name.toString());
+      } else {
+        if (mounted) setState(() => _userName = 'Unknown User');
+      }
+    } catch (_) {
+      if (mounted) setState(() => _userName = 'Unknown User');
+    }
+  }
 
   static const _statuses = [
     'placed', 'processing', 'packed', 'shipped', 'delivered', 'cancelled',
@@ -166,7 +252,8 @@ class _AdminOrderDetailSheetState extends State<AdminOrderDetailSheet> {
                   const SizedBox(height: 16),
                   AdminInfoCard(children: [
                     AdminInfoRow(label: 'Order ID', value: o.id.isEmpty ? '-' : o.id),
-                    AdminInfoRow(label: 'User ID', value: o.shortUserId),
+                    AdminInfoRow(label: 'User Name', value: _userName),
+                    AdminInfoRow(label: 'User ID', value: o.userId),
                     AdminInfoRow(label: 'Quantity', value: '${o.quantity}'),
                     AdminInfoRow(
                         label: 'Unit Price',

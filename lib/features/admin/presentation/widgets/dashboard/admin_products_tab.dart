@@ -183,9 +183,9 @@ class _StickyHeader extends SliverPersistentHeaderDelegate {
   final VoidCallback onSearchClear;
 
   @override
-  double get minExtent => 226;
+  double get minExtent => 236;
   @override
-  double get maxExtent => 226;
+  double get maxExtent => 236;
 
   @override
   bool shouldRebuild(_StickyHeader old) =>
@@ -207,16 +207,7 @@ class _StickyHeader extends SliverPersistentHeaderDelegate {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Products',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF000000),
-              letterSpacing: -0.4,
-            ),
-          ),
-          const SizedBox(height: 10),
+
 
           // ── Mini dashboard ──
           Container(

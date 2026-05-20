@@ -69,31 +69,36 @@ class AdminInfoRow extends StatelessWidget {
 
 class AdminMiniStat extends StatelessWidget {
   const AdminMiniStat(
-      {super.key, required this.label, required this.value, required this.color, this.fontSize = 16});
+      {super.key, required this.label, required this.value, required this.color, this.fontSize = 16, this.onTap});
   final String label;
   final String value;
   final Color color;
   final double fontSize;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(value,
-              style: TextStyle(
-                  color: color,
-                  fontSize: fontSize,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.3)),
-          const SizedBox(height: 2),
-          Text(label,
-              style: const TextStyle(
-                  color: Color(0xFF8E8E93),
-                  fontSize: 9,
-                  fontWeight: FontWeight.w500)),
-        ],
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(value,
+                style: TextStyle(
+                    color: color,
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3)),
+            const SizedBox(height: 2),
+            Text(label,
+                style: const TextStyle(
+                    color: Color(0xFF8E8E93),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w500)),
+          ],
+        ),
       ),
     );
   }

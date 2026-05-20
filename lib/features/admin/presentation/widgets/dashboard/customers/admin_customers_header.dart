@@ -42,15 +42,6 @@ class AdminCustomersHeader extends SliverPersistentHeaderDelegate {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Customers',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF000000),
-              letterSpacing: -0.4,
-            ),
-          ),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),

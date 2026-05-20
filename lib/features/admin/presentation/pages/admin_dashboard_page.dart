@@ -217,48 +217,42 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF2F2F7),
-        appBar: AppBar(
-          backgroundColor: const Color(0xFFF2F2F7),
-          automaticallyImplyLeading: false,
-          title: Text(
-            _titles[_currentIndex],
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 17,
-              letterSpacing: -0.3,
-            ),
-          ),
-          actions: [
-            GestureDetector(
-              onTap: _openProfileSheet,
-              child: Container(
-                margin: const EdgeInsets.only(right: 16),
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF007AFF), Color(0xFF5856D6)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+        appBar: _currentIndex == 0
+            ? AppBar(
+                backgroundColor: const Color(0xFFF2F2F7),
+                automaticallyImplyLeading: false,
+                actions: [
+                  GestureDetector(
+                    onTap: _openProfileSheet,
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 16),
+                      width: 34,
+                      height: 34,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF007AFF), Color(0xFF5856D6)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        name[0].toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  name[0].toUpperCase(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+                ],
+              )
+            : null,
         body: GlassBackground(
           child: SafeArea(
-            top: false,
+            top: true,
             child: IndexedStack(
               index: _currentIndex,
               children: [

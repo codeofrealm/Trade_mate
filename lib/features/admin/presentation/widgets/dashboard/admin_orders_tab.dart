@@ -80,6 +80,9 @@ class _AdminOrdersTabState extends State<AdminOrdersTab> {
           'shipped': all
               .where((o) => o.status.trim().toLowerCase() == 'shipped')
               .length,
+          'delivered': all
+              .where((o) => o.status.trim().toLowerCase() == 'delivered')
+              .length,
         };
 
         return CustomScrollView(
@@ -99,6 +102,7 @@ class _AdminOrdersTabState extends State<AdminOrdersTab> {
                 },
                 onFilterTap: () => _showFilterSheet(context),
                 onFilterClear: () => setState(() => _filterStatus = 'all'),
+                onFilterSelected: (s) => setState(() => _filterStatus = s),
               ),
             ),
             filtered.isEmpty
@@ -244,6 +248,7 @@ class _OrdersHeader extends SliverPersistentHeaderDelegate {
     required this.onSearchClear,
     required this.onFilterTap,
     required this.onFilterClear,
+    required this.onFilterSelected,
   });
 
   final Map<String, int> counts;
@@ -255,6 +260,7 @@ class _OrdersHeader extends SliverPersistentHeaderDelegate {
   final VoidCallback onSearchClear;
   final VoidCallback onFilterTap;
   final VoidCallback onFilterClear;
+  final ValueChanged<String> onFilterSelected;
 
   double get _height => filterStatus != 'all' ? 286 : 258;
 
@@ -282,16 +288,6 @@ class _OrdersHeader extends SliverPersistentHeaderDelegate {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Active Orders',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF000000),
-              letterSpacing: -0.5,
-            ),
-          ),
-          const SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -318,6 +314,7 @@ class _OrdersHeader extends SliverPersistentHeaderDelegate {
                         value: '${counts['active']}',
                         color: const Color(0xFF007AFF),
                         fontSize: 20,
+                        onTap: () => onFilterSelected('all'),
                       ),
                       AdminVertDivider(height: 36),
                       AdminMiniStat(
@@ -325,6 +322,7 @@ class _OrdersHeader extends SliverPersistentHeaderDelegate {
                         value: '${counts['placed']}',
                         color: const Color(0xFF5856D6),
                         fontSize: 20,
+                        onTap: () => onFilterSelected('placed'),
                       ),
                       AdminVertDivider(height: 36),
                       AdminMiniStat(
@@ -332,6 +330,7 @@ class _OrdersHeader extends SliverPersistentHeaderDelegate {
                         value: '${counts['processing']}',
                         color: const Color(0xFFFF9500),
                         fontSize: 20,
+                        onTap: () => onFilterSelected('processing'),
                       ),
                     ],
                   ),
@@ -353,6 +352,7 @@ class _OrdersHeader extends SliverPersistentHeaderDelegate {
                         value: '${counts['packed']}',
                         color: const Color(0xFFFF9500),
                         fontSize: 20,
+                        onTap: () => onFilterSelected('packed'),
                       ),
                       AdminVertDivider(height: 36),
                       AdminMiniStat(
@@ -360,6 +360,15 @@ class _OrdersHeader extends SliverPersistentHeaderDelegate {
                         value: '${counts['shipped']}',
                         color: const Color(0xFF34C759),
                         fontSize: 20,
+                        onTap: () => onFilterSelected('shipped'),
+                      ),
+                      AdminVertDivider(height: 36),
+                      AdminMiniStat(
+                        label: 'Delivered',
+                        value: '${counts['delivered']}',
+                        color: const Color(0xFF32ADE6),
+                        fontSize: 20,
+                        onTap: () => onFilterSelected('delivered'),
                       ),
                     ],
                   ),

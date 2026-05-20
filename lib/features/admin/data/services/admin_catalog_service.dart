@@ -138,7 +138,7 @@ class AdminCatalogService {
     });
   }
 
-  Stream<List<AdminUserOrder>> streamOrders({int limit = 100}) {
+  Stream<List<AdminUserOrder>> streamOrders({int limit = 10000}) {
     return _ordersRef.snapshots().map((snapshot) {
       final orders = snapshot.docs
           .map((doc) => AdminUserOrder.fromFirestore(doc.id, doc.data()))

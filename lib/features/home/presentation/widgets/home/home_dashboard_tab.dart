@@ -42,7 +42,7 @@ class _HomeDashboardTabState extends State<HomeDashboardTab> {
         SliverPersistentHeader(
           pinned: true,
           delegate: _HeaderDelegate(
-            name: widget.name,
+            name: widget.name,  
             searchCtrl: _searchCtrl,
             onSearchChanged: (v) => setState(() => _search = v.trim()),
             onSearchClear: () {
@@ -748,7 +748,7 @@ class _ProductsSliver extends StatelessWidget {
             ),
           );
         }
-        final list = products.take(8).toList();
+        final list = products;
         return SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverGrid(
